@@ -1,0 +1,300 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Inside E-commerce Volume 1 Chapter 01 — The E-commerce Ecosystem"><title>Inside E-commerce · Chapter 01 · The E-commerce Ecosystem</title><link rel="stylesheet" href="assets/reader.css"></head><body><div class="reader-shell"><aside class="sidebar"><a class="brand-link" href="index.html"><span class="kicker">Backend Engineering · System Design</span><strong>INSIDE E-COMMERCE</strong><small>Volume 1 · Understanding E-commerce</small></a><div class="volume-progress"><div class="row"><span>Volume progress</span><span>5 / 5</span></div><div class="progress"><span></span></div></div><div class="nav-label">Chapters</div><div class="chapter-list"><a class="chapter-link active" href="chapter-01-ecommerce-ecosystem.html"><b>01</b><span>The E-commerce Ecosystem</span></a><a class="chapter-link " href="chapter-02-ecommerce-business-models.html"><b>02</b><span>E-commerce Business Models</span></a><a class="chapter-link " href="chapter-03-domain-modeling.html"><b>03</b><span>Domain Modeling</span></a><a class="chapter-link " href="chapter-04-product-pricing.html"><b>04</b><span>Product &amp; Pricing Engineering</span></a><a class="chapter-link " href="chapter-05-order-lifecycle.html"><b>05</b><span>Order Lifecycle</span></a></div><div class="nav-label">In this chapter</div><nav class="toc"><a class="toc-h2" href="#volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</a><a class="toc-h3" href="#chapter-01-the-e-commerce-ecosystem">Chapter 01 — The E-commerce Ecosystem</a><a class="toc-h2" href="#loi-mo-au">Lời mở đầu</a><a class="toc-h3" href="#sau-chuong-nay-ban-co-the">Sau chương này, bạn có thể</a><a class="toc-h2" href="#1-1-e-commerce-duoi-goc-nhin-backend-developer">1.1. E-commerce dưới góc nhìn Backend Developer</a><a class="toc-h2" href="#1-2-cac-domain-cot-loi">1.2. Các domain cốt lõi</a><a class="toc-h3" href="#a-product-catalog-chung-ta-ban-cai-gi">A. Product Catalog — Chúng ta bán cái gì?</a><a class="toc-h3" href="#b-inventory-chung-ta-co-the-ban-bao-nhieu">B. Inventory — Chúng ta có thể bán bao nhiêu?</a><a class="toc-h3" href="#c-shopping-cart-khach-muon-mua-gi">C. Shopping Cart — Khách muốn mua gì?</a><a class="toc-h3" href="#d-order-giao-dich-a-uoc-xac-nhan-ieu-gi">D. Order — Giao dịch đã được xác nhận điều gì?</a><a class="toc-h3" href="#e-payment-dong-tien-ang-o-trang-thai-nao">E. Payment — Dòng tiền đang ở trạng thái nào?</a><a class="toc-h3" href="#f-fulfillment-lam-sao-hang-en-tay-nguoi-mua">F. Fulfillment — Làm sao hàng đến tay người mua?</a><a class="toc-h2" href="#1-3-end-to-end-mot-giao-dich-mua-thuc-su">1.3. End-to-end: Một giao dịch mua thực sự</a><a class="toc-h3" href="#phase-1-discovery-chu-yeu-la-read">Phase 1 — Discovery: chủ yếu là READ</a><a class="toc-h3" href="#phase-2-checkout-kiem-tra-lai-su-that">Phase 2 — Checkout: kiểm tra lại sự thật</a><a class="toc-h3" href="#phase-3-order-creation-va-stock-reservation">Phase 3 — Order creation và stock reservation</a><a class="toc-h3" href="#phase-4-payment-timeout-khong-co-nghia-that-bai">Phase 4 — Payment: timeout không có nghĩa thất bại</a><a class="toc-h3" href="#phase-5-fulfillment">Phase 5 — Fulfillment</a><a class="toc-h2" href="#1-4-ba-dong-chay-khac-nhau">1.4. Ba dòng chảy khác nhau</a><a class="toc-h2" href="#1-5-business-invariants-ieu-he-thong-khong-uoc-phep-vi-pham">1.5. Business invariants: Điều hệ thống không được phép vi phạm</a><a class="toc-h2" href="#1-6-failure-scenarios-thiet-ke-ngoai-happy-path">1.6. Failure scenarios: Thiết kế ngoài happy path</a><a class="toc-h2" href="#1-7-engineering-lab-cua-hang-ien-thoai-au-tien">1.7. Engineering Lab — Cửa hàng điện thoại đầu tiên</a><a class="toc-h3" href="#lab-a-gan-ung-domain">Lab A — Gán đúng domain</a><a class="toc-h3" href="#lab-b-ve-module-boundary">Lab B — Vẽ module boundary</a><a class="toc-h3" href="#lab-c-tim-iem-yeu-schema">Lab C — Tìm điểm yếu schema</a><a class="toc-h2" href="#knowledge-map">Knowledge Map</a><a class="toc-h2" href="#key-takeaways">Key Takeaways</a></nav></aside><section class="content-wrap"><header class="topbar"><button class="menu-btn" aria-label="Mở mục lục">☰</button><div class="crumb">Volume 1 / Chapter 01</div><a href="index.html">Volume home</a></header><article><div class="eyebrow">VOLUME 1 · CHAPTER 01</div><h1 id="inside-e-commerce">INSIDE E-COMMERCE</h1>
+<h2 id="volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</h2>
+<h3 id="chapter-01-the-e-commerce-ecosystem">Chapter 01 — The E-commerce Ecosystem</h3>
+<blockquote>
+<p><strong>Câu hỏi dẫn đường:</strong> Điều gì thực sự diễn ra ở backend khi một khách hàng nhấn <strong>Mua ngay</strong>?</p>
+</blockquote>
+<h2 id="loi-mo-au">Lời mở đầu</h2>
+<p>Người mua mở website, tìm một chiếc điện thoại, thêm vào giỏ và nhấn mua. Với họ, đó chỉ là vài thao tác. Nhưng hệ thống phải trả lời hàng loạt câu hỏi: sản phẩm có tồn tại, phiên bản đang chọn có còn hàng, giá và voucher còn hiệu lực, đơn được tạo thành công chưa, tiền đã được ghi nhận chưa, kho có thể giao hàng không? Nếu bất kỳ bước nào thất bại, hệ thống phải làm gì?</p>
+<p>E-commerce không chỉ xử lý dữ liệu. Nó thực hiện những cam kết giữa người mua, người bán, đơn vị thanh toán và đơn vị vận chuyển. Cuốn sách bắt đầu từ <strong>nghiệp vụ và tính đúng đắn</strong>, rồi mới đi đến Redis, RabbitMQ, Kubernetes và hệ thống phân tán.</p>
+<h3 id="sau-chuong-nay-ban-co-the">Sau chương này, bạn có thể</h3>
+<ul>
+<li>Kể lại vòng đời của một giao dịch mua hàng từ discovery đến fulfillment.</li>
+<li>Phân biệt Product, SKU, Inventory, Cart, Order, Payment và Shipment.</li>
+<li>Nhận diện <strong>dòng thông tin, dòng hàng hóa, dòng tiền</strong> và lý do chúng có thể lệch trạng thái.</li>
+<li>Viết các <strong>business invariant</strong> hệ thống không được vi phạm.</li>
+<li>Phát hiện những failure scenario ẩn phía sau một flow trông có vẻ đơn giản.</li>
+</ul>
+<hr/>
+<h2 id="1-1-e-commerce-duoi-goc-nhin-backend-developer">1.1. E-commerce dưới góc nhìn Backend Developer</h2>
+<p>Hãy hình dung một cửa hàng điện thoại truyền thống: khách xem hàng, nhân viên báo giá, kiểm tra kho, thu tiền, giao sản phẩm. Đưa cửa hàng lên Internet không làm các bước đó biến mất; nó biến chúng thành những hành vi phần mềm có thể diễn ra đồng thời ở quy mô lớn.</p>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 1" loading="lazy" src="assets/diagram-01.svg"/><figcaption>Sơ đồ 01 · SVG có thể phóng to</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Cửa hàng vật lý</th>
+<th>E-commerce backend</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khách xem hàng</td>
+<td>Product Catalog / Product Detail</td>
+</tr>
+<tr>
+<td>Nhân viên tìm hàng</td>
+<td>Search / Recommendation</td>
+</tr>
+<tr>
+<td>Khách chọn nhiều món</td>
+<td>Shopping Cart</td>
+</tr>
+<tr>
+<td>Nhân viên báo giá</td>
+<td>Pricing / Promotion</td>
+</tr>
+<tr>
+<td>Nhân viên kiểm tra kho</td>
+<td>Inventory</td>
+</tr>
+<tr>
+<td>Khách xác nhận mua</td>
+<td>Checkout / Order</td>
+</tr>
+<tr>
+<td>Thu tiền</td>
+<td>Payment</td>
+</tr>
+<tr>
+<td>Giao sản phẩm</td>
+<td>Fulfillment / Shipping</td>
+</tr>
+<tr>
+<td>Trả hàng</td>
+<td>Return / Refund</td>
+</tr>
+</tbody>
+</table>
+<p>Một nhân viên có thể nhận ra hai khách cùng muốn mua chiếc điện thoại cuối cùng. Một backend cần đảm bảo điều đó khi có hàng nghìn request đến gần như cùng lúc. Bởi vậy, <strong>business logic + state + concurrency</strong> là những mảnh ghép bắt buộc.</p>
+<blockquote>
+<p><strong>Định nghĩa:</strong> E-commerce backend là hệ thống quản lý quy tắc kinh doanh, dữ liệu, giao dịch và trạng thái của quá trình mua bán trực tuyến.</p>
+</blockquote>
+<h2 id="1-2-cac-domain-cot-loi">1.2. Các domain cốt lõi</h2>
+<p>Sơ đồ sau mô tả <strong>ranh giới trách nhiệm logic</strong>, không bắt buộc mỗi ô là một microservice:</p>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 2" loading="lazy" src="assets/diagram-02.svg"/><figcaption>Sơ đồ 02 · SVG có thể phóng to</figcaption></figure>
+<h3 id="a-product-catalog-chung-ta-ban-cai-gi">A. Product Catalog — Chúng ta bán cái gì?</h3>
+<p>Product Catalog quản lý danh tính và nội dung sản phẩm: tên, mô tả, thương hiệu, danh mục, hình ảnh, trạng thái hiển thị. <strong>Product tồn tại không đồng nghĩa có thể mua ngay.</strong> Một điện thoại vẫn xuất hiện trên website khi hết hàng.</p>
+<pre><code class="language-json">{
+  "productId": 1001,
+  "name": "Smartphone X",
+  "brand": "Example Brand",
+  "category": "Smartphones",
+  "status": "ACTIVE"
+}
+</code></pre>
+<p>SKU (Stock Keeping Unit) đại diện cho một biến thể hàng hóa cần quản lý riêng. Ví dụ, điện thoại màu đen 256 GB và màu trắng 512 GB thường là hai SKU. Sự khác nhau này quyết định cách thiết kế giá, tồn kho và dòng đơn hàng.</p>
+<h3 id="b-inventory-chung-ta-co-the-ban-bao-nhieu">B. Inventory — Chúng ta có thể bán bao nhiêu?</h3>
+<p>Inventory theo dõi khả năng cung cấp theo SKU, đôi khi theo từng kho.</p>
+<pre><code class="language-json">{
+  "skuId": "PHONE-X-BLACK-256",
+  "warehouseId": "WH-HN-01",
+  "physicalQuantity": 100,
+  "reservedQuantity": 20,
+  "availableQuantity": 80
+}
+</code></pre>
+<p>Trong mô hình đơn giản: <code>available = physical - reserved</code>. Hệ thống thật có thể phải trừ hàng hỏng, hàng đang khóa, hàng chờ kiểm kê hoặc theo chính sách backorder.</p>
+<h3 id="c-shopping-cart-khach-muon-mua-gi">C. Shopping Cart — Khách muốn mua gì?</h3>
+<p>Giỏ hàng biểu thị ý định mua. Mặc định, <strong>thêm vào giỏ không phải là giữ tồn kho</strong>. Có thể 1.000 người cùng thêm một SKU vào giỏ trong khi kho chỉ có 100 chiếc. Thời điểm giữ hàng là quyết định nghiệp vụ, thường nằm gần checkout hoặc bước xác nhận đơn.</p>
+<pre><code class="language-json">{
+  "userId": 101,
+  "items": [{"skuId": "PHONE-X-BLACK-256", "quantity": 2}]
+}
+</code></pre>
+<h3 id="d-order-giao-dich-a-uoc-xac-nhan-ieu-gi">D. Order — Giao dịch đã được xác nhận điều gì?</h3>
+<p>Order không chỉ là bản sao Cart. Nó cần lưu <strong>snapshot giao dịch</strong>: tên/phiên bản hàng cần thiết, đơn giá áp dụng, số lượng, giảm giá, địa chỉ giao, tổng tiền, loại tiền và trạng thái nghiệp vụ.</p>
+<pre><code class="language-json">{
+  "orderId": "ORD-1001",
+  "userId": 101,
+  "status": "PENDING_PAYMENT",
+  "totalAmount": 20000000,
+  "currency": "VND"
+}
+</code></pre>
+<p>Nếu ngày mai admin tăng giá catalog, đơn đã chốt không tự đổi theo. Chính sách chỉnh đơn/hủy đơn là một hành vi tường minh, không phải side effect từ việc sửa sản phẩm.</p>
+<h3 id="e-payment-dong-tien-ang-o-trang-thai-nao">E. Payment — Dòng tiền đang ở trạng thái nào?</h3>
+<p>Một Order có thể có <strong>nhiều payment attempt</strong>: thanh toán lần đầu timeout, lần hai dùng phương thức khác, hoặc có nhiều lần thử bị từ chối. Không nên gộp khái niệm Order, Payment Attempt và Payment Transaction thành một trạng thái duy nhất. Payment Gateway có thể xác nhận kết quả bất đồng bộ qua webhook.</p>
+<h3 id="f-fulfillment-lam-sao-hang-en-tay-nguoi-mua">F. Fulfillment — Làm sao hàng đến tay người mua?</h3>
+<p>Fulfillment bao gồm phân bổ kho, lấy hàng, đóng gói, bàn giao vận chuyển, theo dõi giao và xử lý ngoại lệ. <strong>Đã trả tiền ≠ đã giao hàng.</strong> Đơn có thể được thanh toán thành công nhưng kho phát hiện hàng bị hỏng hoặc đơn vị vận chuyển không thể tiếp nhận.</p>
+<h2 id="1-3-end-to-end-mot-giao-dich-mua-thuc-su">1.3. End-to-end: Một giao dịch mua thực sự</h2>
+<p>Giả sử khách chọn một điện thoại giá 10 triệu đồng, thanh toán online và nhận hàng tại Hà Nội.</p>
+<h3 id="phase-1-discovery-chu-yeu-la-read">Phase 1 — Discovery: chủ yếu là READ</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 3" loading="lazy" src="assets/diagram-03.svg"/><figcaption>Sơ đồ 03 · SVG có thể phóng to</figcaption></figure>
+<p>Dữ liệu thường đọc gồm product, variant, image, category, price, inventory summary. Khi tải đọc tăng, cache, index, search engine và CDN có thể trở nên hữu ích — nhưng chưa cần áp dụng chỉ vì thấy công nghệ đó phổ biến.</p>
+<h3 id="phase-2-checkout-kiem-tra-lai-su-that">Phase 2 — Checkout: kiểm tra lại sự thật</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 4" loading="lazy" src="assets/diagram-04.svg"/><figcaption>Sơ đồ 04 · SVG có thể phóng to</figcaption></figure>
+<p>Giỏ có thể được tạo lúc 10:00; khuyến mãi kết thúc 10:05; khách thanh toán 10:10. Backend phải chốt giá theo chính sách thực tế và thông báo nếu điều kiện thay đổi. Giá frontend gửi lên không phải nguồn sự thật.</p>
+<h3 id="phase-3-order-creation-va-stock-reservation">Phase 3 — Order creation và stock reservation</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 5" loading="lazy" src="assets/diagram-05.svg"/><figcaption>Sơ đồ 05 · SVG có thể phóng to</figcaption></figure>
+<p>Sơ đồ giả định Order và Inventory nằm trong <strong>cùng database transaction</strong>. Nếu hai domain nằm ở hai service/database khác nhau, một transaction SQL thông thường không còn bao trùm được cả hai; các chương Distributed Systems sẽ giải quyết ranh giới đó.</p>
+<h3 id="phase-4-payment-timeout-khong-co-nghia-that-bai">Phase 4 — Payment: timeout không có nghĩa thất bại</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 6" loading="lazy" src="assets/diagram-06.svg"/><figcaption>Sơ đồ 06 · SVG có thể phóng to</figcaption></figure>
+<p>Nếu gọi Payment Gateway bị timeout, tiền <strong>có thể đã bị trừ</strong> trong khi backend chưa nhận phản hồi. Đừng đánh dấu <code>FAILED</code> chỉ dựa trên lỗi mạng. Tùy hợp đồng tích hợp, cần tra soát giao dịch, nhận webhook và bảo đảm idempotency.</p>
+<h3 id="phase-5-fulfillment">Phase 5 — Fulfillment</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 7" loading="lazy" src="assets/diagram-07.svg"/><figcaption>Sơ đồ 07 · SVG có thể phóng to</figcaption></figure>
+<p>Kho thiếu hàng thực tế, đổi địa chỉ, người nhận từ chối hàng hoặc hãng vận chuyển thất bại đều là những nhánh cần thiết của nghiệp vụ. Một cột <code>SUCCESS/FAILED</code> duy nhất thường quá nghèo để mô tả toàn bộ vòng đời.</p>
+<h2 id="1-4-ba-dong-chay-khac-nhau">1.4. Ba dòng chảy khác nhau</h2>
+<table>
+<thead>
+<tr>
+<th>Dòng chảy</th>
+<th>Hành trình mẫu</th>
+<th>Câu hỏi chính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Information flow</strong></td>
+<td>Product → Cart → Order snapshot</td>
+<td>Ta biết gì về giao dịch tại từng thời điểm?</td>
+</tr>
+<tr>
+<td><strong>Inventory flow</strong></td>
+<td>Warehouse → Reservation → Allocation → Shipment</td>
+<td>Hàng đang ở đâu và có còn được bán không?</td>
+</tr>
+<tr>
+<td><strong>Money flow</strong></td>
+<td>Payment attempt → Confirmation → Settlement → Refund</td>
+<td>Tiền đã được ghi nhận, đối soát và hoàn trả thế nào?</td>
+</tr>
+</tbody>
+</table>
+<p>Giả sử khách đặt và thanh toán thành công, nhưng kho phát hiện hàng bị hỏng:</p>
+<ul>
+<li>Information flow: Order đã tạo và có lịch sử rõ ràng.</li>
+<li>Inventory flow: Không thể thực hiện việc giao hàng như dự kiến.</li>
+<li>Money flow: Tiền đã được thanh toán; có thể cần hoàn tiền.</li>
+</ul>
+<p>Đổi <code>order.status = FAILED</code> <strong>không tự động</strong> hoàn tiền hoặc sửa tồn kho. Chính chỗ lệch trạng thái này dẫn đến nhu cầu thiết kế Saga, Compensation và Reconciliation.</p>
+<h2 id="1-5-business-invariants-ieu-he-thong-khong-uoc-phep-vi-pham">1.5. Business invariants: Điều hệ thống không được phép vi phạm</h2>
+<p>Invariant là điều kiện phải đúng tại ranh giới nghiệp vụ được xác định, ngay cả khi có concurrent requests hoặc một số thành phần bị lỗi.</p>
+<table>
+<thead>
+<tr>
+<th>Invariant</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inventory</td>
+<td>Không xác nhận giữ thành công vượt khả năng phân bổ, trừ khi nghiệp vụ chủ động cho backorder.</td>
+</tr>
+<tr>
+<td>Order snapshot</td>
+<td>Giá trị đã chốt của đơn không tự biến đổi vì catalog đổi giá.</td>
+</tr>
+<tr>
+<td>Payment</td>
+<td>Nhận lại cùng một thông báo không tạo tác động tài chính/nghiệp vụ trùng.</td>
+</tr>
+<tr>
+<td>Reservation</td>
+<td>Một reservation chỉ được giải phóng/hoàn hàng một lần.</td>
+</tr>
+<tr>
+<td>State transition</td>
+<td>Không chuyển trạng thái bất hợp lệ, ví dụ giao hàng thành công trước khi có shipment hợp lệ.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Performance</strong> trả lời <em>hệ thống nhanh đến đâu</em>. <strong>Correctness</strong> trả lời <em>hệ thống có đưa ra kết quả đúng không</em>. Một hệ thống cache cực nhanh nhưng oversell hay hoàn tiền trùng vẫn là một thiết kế chưa đạt yêu cầu.</p>
+<h2 id="1-6-failure-scenarios-thiet-ke-ngoai-happy-path">1.6. Failure scenarios: Thiết kế ngoài happy path</h2>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 8" loading="lazy" src="assets/diagram-08.svg"/><figcaption>Sơ đồ 08 · SVG có thể phóng to</figcaption></figure>
+<p>Đó chỉ là happy path. Production còn những kịch bản sau:</p>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Rủi ro</th>
+<th>Keyword để học tiếp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hai khách mua sản phẩm cuối</td>
+<td>Overselling</td>
+<td>Concurrency, Atomic Update</td>
+</tr>
+<tr>
+<td>Khách nhấn Mua hai lần</td>
+<td>Duplicate order</td>
+<td>Idempotency</td>
+</tr>
+<tr>
+<td>DB commit nhưng mất HTTP response</td>
+<td>Client tưởng chưa đặt hàng</td>
+<td>Request identity, Retry</td>
+</tr>
+<tr>
+<td>Payment Gateway timeout</td>
+<td>Kết quả thanh toán chưa rõ</td>
+<td>Reconciliation</td>
+</tr>
+<tr>
+<td>Webhook đến trễ hoặc trùng</td>
+<td>Order bị cập nhật sai</td>
+<td>Idempotent handler</td>
+</tr>
+<tr>
+<td>Worker chết sau khi giữ hàng</td>
+<td>Reservation bị treo</td>
+<td>Expiration, Recovery</td>
+</tr>
+<tr>
+<td>Khách hủy khi kho đang đóng gói</td>
+<td>Tranh chấp trạng thái</td>
+<td>State machine</td>
+</tr>
+<tr>
+<td>Giá đổi trong checkout</td>
+<td>Price inconsistency</td>
+<td>Pricing snapshot</td>
+</tr>
+</tbody>
+</table>
+<p>Nhiều lỗi không nằm ở cú pháp Java hay SQL; chúng phát sinh do <strong>thời điểm, thứ tự thực hiện và trạng thái phân tán</strong>.</p>
+<h2 id="1-7-engineering-lab-cua-hang-ien-thoai-au-tien">1.7. Engineering Lab — Cửa hàng điện thoại đầu tiên</h2>
+<p><strong>Phạm vi giả định:</strong> 1.000 người dùng; 100 product; một kho; Spring Boot + PostgreSQL; kiến trúc modular monolith. Đây là ràng buộc bài tập, <strong>không phải</strong> benchmark năng lực chịu tải.</p>
+<h3 id="lab-a-gan-ung-domain">Lab A — Gán đúng domain</h3>
+<ol>
+<li>Khách hỏi điện thoại có những màu gì? → <strong>Product Catalog</strong>.</li>
+<li>Khách hỏi kho còn mấy máy đen 256 GB? → <strong>Inventory</strong>.</li>
+<li>Khách đã thanh toán nhưng chưa nhận hàng? → <strong>Payment + Fulfillment</strong>.</li>
+<li>Admin đổi giá sau khi khách đặt? → <strong>Giữ snapshot giao dịch của đơn đã chốt</strong>.</li>
+</ol>
+<h3 id="lab-b-ve-module-boundary">Lab B — Vẽ module boundary</h3>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 9" loading="lazy" src="assets/diagram-09.svg"/><figcaption>Sơ đồ 09 · SVG có thể phóng to</figcaption></figure>
+<p>Các module là các phần logic của một ứng dụng; không cần tách thành microservice ngay.</p>
+<h3 id="lab-c-tim-iem-yeu-schema">Lab C — Tìm điểm yếu schema</h3>
+<p>Xem thiết kế cố ý quá đơn giản:</p>
+<pre><code class="language-sql">CREATE TABLE products (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price NUMERIC(18,2) NOT NULL,
+  stock INTEGER NOT NULL
+);
+
+CREATE TABLE orders (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  product_id BIGINT NOT NULL,
+  status TEXT NOT NULL
+);
+</code></pre>
+<p>Hãy tự thiết kế lại để xử lý: nhiều item mỗi đơn; nhiều SKU mỗi product; snapshot đơn giá; nhiều kho; voucher; hoàn tiền/hoàn hàng một phần. Chúng ta sẽ giải bài toán này ở chương Domain Modeling và Database Design.</p>
+<hr/>
+<h2 id="knowledge-map">Knowledge Map</h2>
+<figure class="diagram"><img alt="Sơ đồ kỹ thuật 10" loading="lazy" src="assets/diagram-10.svg"/><figcaption>Sơ đồ 10 · SVG có thể phóng to</figcaption></figure>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li>E-commerce không chỉ là CRUD sản phẩm và đơn hàng.</li>
+<li>Product, SKU, Cart, Inventory, Order, Payment, Fulfillment có những trách nhiệm riêng.</li>
+<li>Information, stock và money flow có thể ở trạng thái không đồng bộ.</li>
+<li>Business invariants cho biết tính đúng đắn nào cần được bảo vệ.</li>
+<li>Phải thiết kế cả happy path lẫn failure scenarios.</li>
+<li>Hiểu domain trước khi chọn Redis, RabbitMQ, microservices hoặc Kubernetes.</li>
+</ol>
+<p><strong>Chương tiếp theo:</strong> Chapter 02 — E-commerce Business Models: B2C, B2B, C2C, D2C, Marketplace; seller ownership, commission, settlement, multi-seller orders và hệ quả đối với kiến trúc dữ liệu.</p>
+<div class="footer">Inside E-commerce · Chapter 01 · Bản nội dung và sơ đồ dùng được khi offline. Mermaid source nằm trong Markdown.</div></article><div class="chapter-nav"><span class="empty"></span><a href="chapter-02-ecommerce-business-models.html"><small>Chương tiếp theo →</small>E-commerce Business Models</a></div></section></div><script src="assets/reader.js"></script></body></html>

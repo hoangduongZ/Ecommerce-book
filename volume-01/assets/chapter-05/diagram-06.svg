@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="495" viewBox="0 0 760 495">
+<defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0 0L6 3L0 6" fill="none" stroke="#487ca7" stroke-width="1.5"/></marker></defs>
+<rect width="760" height="495" rx="16" fill="#f6faff"/>
+<rect x="28" y="20" width="164" height="44" rx="10" fill="#e5f0ff" stroke="#8db6db"/>
+<text x="110" y="47" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="13" fill="#193b57">Customer</text>
+<line x1="110" x2="110" y1="67" y2="475" stroke="#bad0e2" stroke-dasharray="6 5"/>
+<rect x="258" y="20" width="164" height="44" rx="10" fill="#e5f0ff" stroke="#8db6db"/>
+<text x="340" y="47" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="13" fill="#193b57">Order DB</text>
+<line x1="340" x2="340" y1="67" y2="475" stroke="#bad0e2" stroke-dasharray="6 5"/>
+<rect x="488" y="20" width="164" height="44" rx="10" fill="#e5f0ff" stroke="#8db6db"/>
+<text x="570" y="47" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="13" fill="#193b57">Payment Webhook</text>
+<line x1="570" x2="570" y1="67" y2="475" stroke="#bad0e2" stroke-dasharray="6 5"/>
+<line x1="110" y1="100" x2="340" y2="100" stroke="#487ca7" stroke-width="1.7"  marker-end="url(#a)"/>
+<text x="225.0" y="91" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="12" fill="#274760">Read PENDING_PAYMENT</text>
+<line x1="570" y1="167" x2="340" y2="167" stroke="#487ca7" stroke-width="1.7"  marker-end="url(#a)"/>
+<text x="455.0" y="158" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="12" fill="#274760">Read PENDING_PAYMENT</text>
+<line x1="110" y1="234" x2="340" y2="234" stroke="#487ca7" stroke-width="1.7"  marker-end="url(#a)"/>
+<text x="225.0" y="225" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="12" fill="#274760">Write CANCELLED</text>
+<line x1="570" y1="301" x2="340" y2="301" stroke="#487ca7" stroke-width="1.7"  marker-end="url(#a)"/>
+<text x="455.0" y="292" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="12" fill="#274760">Write CONFIRMED</text>
+<line x1="340" y1="368" x2="110" y2="368" stroke="#487ca7" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="225.0" y="359" text-anchor="middle" font-family="Noto Sans, sans-serif" font-size="12" fill="#274760">Lost update or invalid business state</text>
+</svg>

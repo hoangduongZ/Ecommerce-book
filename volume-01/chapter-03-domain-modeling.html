@@ -1,0 +1,848 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Inside E-commerce Volume 1 Chapter 03 — Domain Modeling"><title>Inside E-commerce · Chapter 03 · Domain Modeling</title><link rel="stylesheet" href="assets/reader.css"></head><body><div class="reader-shell"><aside class="sidebar"><a class="brand-link" href="index.html"><span class="kicker">Backend Engineering · System Design</span><strong>INSIDE E-COMMERCE</strong><small>Volume 1 · Understanding E-commerce</small></a><div class="volume-progress"><div class="row"><span>Volume progress</span><span>5 / 5</span></div><div class="progress"><span></span></div></div><div class="nav-label">Chapters</div><div class="chapter-list"><a class="chapter-link " href="chapter-01-ecommerce-ecosystem.html"><b>01</b><span>The E-commerce Ecosystem</span></a><a class="chapter-link " href="chapter-02-ecommerce-business-models.html"><b>02</b><span>E-commerce Business Models</span></a><a class="chapter-link active" href="chapter-03-domain-modeling.html"><b>03</b><span>Domain Modeling</span></a><a class="chapter-link " href="chapter-04-product-pricing.html"><b>04</b><span>Product &amp; Pricing Engineering</span></a><a class="chapter-link " href="chapter-05-order-lifecycle.html"><b>05</b><span>Order Lifecycle</span></a></div><div class="nav-label">In this chapter</div><nav class="toc"><a class="toc-h2" href="#volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</a><a class="toc-h3" href="#chapter-03-domain-modeling-t-nghi-p-v-d-n-m-h-nh-d-li-u-v-backend">Chapter 03 — Domain Modeling: Từ nghiệp vụ đến mô hình dữ liệu và bac…</a><a class="toc-h2" href="#sau-ch-ng-n-y-b-n-c-th">Sau chương này, bạn có thể</a><a class="toc-h2" href="#3-1-bad-case-b-t-d-u-b-ng-b-ng-kh-ng-b-t-d-u-b-ng-nghi-p-v">3.1. Bad case: bắt đầu bằng bảng, không bắt đầu bằng nghiệp vụ</a><a class="toc-h3" href="#m-t-th-c-h-nh-t-t-h-n">Một thực hành tốt hơn</a><a class="toc-h2" href="#3-2-ubiquitous-language-th-ng-nh-t-t-v-ng-tr-c-khi-code">3.2. Ubiquitous Language — thống nhất từ vựng trước khi code</a><a class="toc-h3" href="#k-thu-t-h-i-d-kh-m-ph-domain">Kỹ thuật hỏi để khám phá domain</a><a class="toc-h2" href="#3-3-entity-kh-c-value-object-ra-sao">3.3. Entity khác Value Object ra sao?</a><a class="toc-h3" href="#entity-th-c-n-theo-d-i-danh-t-nh">Entity: thứ cần theo dõi danh tính</a><a class="toc-h3" href="#value-object-th-d-c-d-nh-ngh-a-b-ng-gi-tr">Value Object: thứ được định nghĩa bằng giá trị</a><a class="toc-h3" href="#money-tr-nh-double">Money: tránh double</a><a class="toc-h2" href="#3-4-t-ch-product-variant-offer-inventory-order-snapshot">3.4. Tách Product / Variant / Offer / Inventory / Order Snapshot</a><a class="toc-h2" href="#3-5-quan-h-gi-a-c-c-domain-kh-ng-ph-i-m-i-m-i-t-n-l-foreign-key">3.5. Quan hệ giữa các domain: không phải mọi mũi tên là foreign key</a><a class="toc-h3" href="#bad-case-jpa-graph-xuy-n-to-n-b-h-th-ng">Bad case: JPA graph xuyên toàn bộ hệ thống</a><a class="toc-h2" href="#3-6-bounded-context-c-ng-m-t-t-c-th-mang-nhi-u-ngh-a">3.6. Bounded Context: cùng một từ có thể mang nhiều ý nghĩa</a><a class="toc-h3" href="#context-ownership-matrix">Context ownership matrix</a><a class="toc-h2" href="#3-7-aggregate-v-aggregate-root-t-c-m-b-ng-sang-ranh-gi-i-t-nh-d-ng-d-n">3.7. Aggregate và Aggregate Root: từ “cụm bảng” sang “ranh giới tính …</a><a class="toc-h3" href="#c-ph-i-m-t-transactional-m-t-aggregate">Có phải một @Transactional = một Aggregate?</a><a class="toc-h2" href="#3-8-business-invariants-chuy-n-t-c-u-n-i-th-nh-lu-t-c-th-ki-m-th">3.8. Business Invariants: chuyển từ câu nói thành luật có thể kiểm thử</a><a class="toc-h3" href="#check-constraint-d-d-ng-n-overselling">Check constraint đủ để ngăn overselling?</a><a class="toc-h2" href="#3-9-state-machine-status-l-h-p-d-ng-nghi-p-v-kh-ng-ph-i-chu-i-t-y">3.9. State Machine: status là hợp đồng nghiệp vụ, không phải chuỗi tùy ý</a><a class="toc-h3" href="#bad-case-k-t-h-p-tr-ng-th-i-kh-ng-h-p-l">Bad case: kết hợp trạng thái không hợp lệ</a><a class="toc-h2" href="#3-10-thi-t-k-database-schema-tham-kh-o-cho-ho-ng-marketplace">3.10. Thiết kế Database Schema tham khảo cho Hoàng Marketplace</a><a class="toc-h3" href="#3-10-1-b-b-ng-t-i-thi-u-v-quy-n-s-h-u">3.10.1. Bộ bảng tối thiểu và quyền sở hữu</a><a class="toc-h3" href="#3-10-2-sql-c-th-ki-m-tra-trong-postgresql">3.10.2. SQL có thể kiểm tra trong PostgreSQL</a><a class="toc-h3" href="#3-10-3-gi-ch-t-trong-order-item">3.10.3. Giá chốt trong Order Item</a><a class="toc-h2" href="#3-11-transaction-boundary-trong-use-case-placeorder">3.11. Transaction Boundary trong use case PlaceOrder</a><a class="toc-h3" href="#ranh-gi-i-nguy-n-t-n-u-order-v-inventory-c-ng-db">Ranh giới nguyên tử nếu Order và Inventory cùng DB</a><a class="toc-h3" href="#khi-n-o-kh-ng-n-n-g-p-v-o-m-t-aggregate">Khi nào không nên gộp vào một Aggregate?</a><a class="toc-h2" href="#3-12-modular-monolith-trong-spring-boot">3.12. Modular Monolith trong Spring Boot</a><a class="toc-h3" href="#java-domain-v-d-kh-ng-cho-ai-t-y-d-i-tr-ng-th-i">Java Domain ví dụ: không cho ai tùy ý đổi trạng thái</a><a class="toc-h2" href="#3-13-domain-events-th-g-d-x-y-ra-kh-ng-ph-i-m-t-l-nh-sql">3.13. Domain Events: thứ gì đã xảy ra, không phải một lệnh SQL</a><a class="toc-h2" href="#3-14-failure-scenarios-domain-model-t-t-gi-p-ph-t-hi-n-l-i-tr-c-khi-scale">3.14. Failure scenarios: domain model tốt giúp phát hiện lỗi trước kh…</a><a class="toc-h3" href="#quiz-ph-n-bi-t-l-i-v-model-v-l-i-v-infrastructure">Quiz phân biệt lỗi về model và lỗi về infrastructure</a><a class="toc-h2" href="#3-15-engineering-lab-t-schema-ng-y-th-d-n-domain-c-th-ki-m-ch-ng">3.15. Engineering Lab — từ schema ngây thơ đến domain có thể kiểm chứng</a><a class="toc-h3" href="#di-u-ki-n-d-u-v-o">Điều kiện đầu vào</a><a class="toc-h3" href="#lab-a-v-context-map">Lab A — Vẽ context map</a><a class="toc-h3" href="#lab-b-ch-y-sql-m-u">Lab B — Chạy SQL mẫu</a><a class="toc-h3" href="#lab-c-concurrency-test">Lab C — Concurrency test</a><a class="toc-h3" href="#lab-d-state-transition-test">Lab D — State transition test</a><a class="toc-h3" href="#lab-e-architecture-review">Lab E — Architecture review</a><a class="toc-h3" href="#checklist-ho-n-th-nh-ch-ng">Checklist hoàn thành chương</a><a class="toc-h2" href="#knowledge-map">Knowledge Map</a><a class="toc-h2" href="#key-takeaways">Key Takeaways</a><a class="toc-h2" href="#t-i-li-u-tham-kh-o-v-gi-i-h-n-p-d-ng">Tài liệu tham khảo và giới hạn áp dụng</a></nav></aside><section class="content-wrap"><header class="topbar"><button class="menu-btn" aria-label="Mở mục lục">☰</button><div class="crumb">Volume 1 / Chapter 03</div><a href="index.html">Volume home</a></header><article><div class="eyebrow">VOLUME 1 · CHAPTER 03</div><h1 id="inside-e-commerce">INSIDE E-COMMERCE</h1>
+<h2 id="volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</h2>
+<h3 id="chapter-03-domain-modeling-t-nghi-p-v-d-n-m-h-nh-d-li-u-v-backend">Chapter 03 — Domain Modeling: Từ nghiệp vụ đến mô hình dữ liệu và backend</h3>
+<blockquote>
+<p><strong>Câu hỏi dẫn đường:</strong> Tại sao một bảng <code>products(id, name, price, stock)</code> và <code>orders(id, user_id, product_id, status)</code> có thể chạy trong demo nhưng trở nên khó sửa khi thêm màu sắc, nhiều seller, nhiều kho, voucher, thanh toán lại và hoàn hàng một phần?</p>
+</blockquote>
+<blockquote>
+<p><strong>Phạm vi:</strong> Chúng ta tiếp tục dự án giả định <strong>Hoàng Phone → Hoàng Marketplace</strong> của chương 01–02. Ví dụ dùng PostgreSQL và Java/Spring Boot, không tuyên bố đây là schema duy nhất. Quy tắc thuế, hoàn tiền và thanh toán thực tế phụ thuộc mô hình vận hành. Những đoạn code được ghi “minh họa” không phải repository production hoàn chỉnh.</p>
+</blockquote>
+<h2 id="sau-ch-ng-n-y-b-n-c-th">Sau chương này, bạn có thể</h2>
+<ul>
+<li>Chuyển phát biểu kinh doanh thành <strong>ubiquitous language, use cases, rules và invariants</strong> trước khi vẽ bảng.</li>
+<li>Phân biệt <strong>Product, Product Variant/SKU, Seller Offer, Stock, Reservation, Cart, Order Group, Seller Order, Order Item, Payment Attempt</strong>.</li>
+<li>Nhận ra <strong>Entity, Value Object, Aggregate, Aggregate Root, Bounded Context và Domain Event</strong>; biết khi nào không cần áp dụng DDD đầy đủ.</li>
+<li>Xác định ranh giới transaction: dữ liệu nào cần nhất quán tức thì; dữ liệu nào có thể đồng bộ qua sự kiện.</li>
+<li>Viết schema PostgreSQL mẫu có PK/FK/UNIQUE/CHECK, snapshot giá, bảng reservation và chống trùng request.</li>
+<li>Tổ chức một Spring Boot <strong>modular monolith</strong> không biến mọi bảng thành REST CRUD public.</li>
+<li>Nhận biết lỗ hổng trong mô hình qua test scenario và câu hỏi của một system designer.</li>
+</ul>
+<hr/>
+<h2 id="3-1-bad-case-b-t-d-u-b-ng-b-ng-kh-ng-b-t-d-u-b-ng-nghi-p-v">3.1. Bad case: bắt đầu bằng bảng, không bắt đầu bằng nghiệp vụ</h2>
+<p>Một developer nhận yêu cầu “xây website bán điện thoại”, rồi viết ngay:</p>
+<pre><code class="language-sql">CREATE TABLE products (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price NUMERIC(18, 2) NOT NULL,
+  stock INTEGER NOT NULL
+);
+
+CREATE TABLE orders (
+  id BIGINT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  product_id BIGINT NOT NULL,
+  status TEXT NOT NULL
+);
+</code></pre>
+<p>Với demo “mỗi đơn mua một sản phẩm, một người bán, một kho, không khuyến mãi”, nó có thể đủ để bắt đầu. Nhưng <strong>database đang ngầm chứa một tập giả định nghiệp vụ</strong>:</p>
+<ol>
+<li><code>products.price</code>: chỉ có một mức giá cho mọi seller và mọi kênh bán.</li>
+<li><code>products.stock</code>: chỉ có một con số tồn kho, không phân biệt kho hay hàng đã giữ.</li>
+<li><code>orders.product_id</code>: mỗi đơn chỉ có đúng một mặt hàng.</li>
+<li><code>orders.status</code>: một trạng thái đủ mô tả thanh toán, đóng gói, vận chuyển và hoàn hàng.</li>
+<li>Không có dữ liệu thời điểm mua; giá đổi sẽ khiến ta khó giải thích tổng tiền của đơn cũ.</li>
+</ol>
+<figure class="diagram"><a href="assets/chapter-03/diagram-01.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 01" loading="lazy" src="assets/chapter-03/diagram-01.svg"/></a><figcaption><strong>Sơ đồ 01</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    R["Requirement: bán điện thoại"] --&gt; T["Tạo products và orders"]
+    T --&gt; A["Thêm nhiều phiên bản màu/dung lượng"]
+    T --&gt; B["Thêm nhiều seller và kho"]
+    T --&gt; C["Một order có nhiều items"]
+    T --&gt; D["Payment retry và refund"]
+    A --&gt; E["Schema ban đầu thiếu khái niệm"]
+    B --&gt; E
+    C --&gt; E
+    D --&gt; E
+</pre></details></figcaption></figure>
+<p><strong>Nỗi đau không phải SQL viết sai. Nỗi đau là ta đã thiết kế dữ liệu khi chưa biết nó phải đại diện cho hiện thực nào.</strong></p>
+<h3 id="m-t-th-c-h-nh-t-t-h-n">Một thực hành tốt hơn</h3>
+<p>Trước mỗi entity, hỏi: “Ai ra quyết định? Quy tắc nào không được phá vỡ? Đối tượng này sống bao lâu? Có thay đổi độc lập với đối tượng khác không?”</p>
+<table>
+<thead>
+<tr>
+<th>Phát biểu từ business</th>
+<th>Khái niệm cần xác định</th>
+<th>Câu hỏi thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“Cùng điện thoại, mỗi màu có số lượng khác nhau”</td>
+<td>Variant / SKU</td>
+<td>Cái gì định danh từng phiên bản bán được?</td>
+</tr>
+<tr>
+<td>“Seller A và B bán cùng một máy, giá khác nhau”</td>
+<td>Offer</td>
+<td>Giá thuộc catalog chung hay lời chào bán của seller?</td>
+</tr>
+<tr>
+<td>“Hàng đã giữ 15 phút”</td>
+<td>Reservation</td>
+<td>Giữ bao nhiêu, đến lúc nào, ai sở hữu việc giải phóng?</td>
+</tr>
+<tr>
+<td>“Giỏ có hàng của hai seller”</td>
+<td>Order Group / Seller Order</td>
+<td>Ai thực hiện từng phần đơn hàng?</td>
+</tr>
+<tr>
+<td>“Khách đã trả tiền nhưng chưa giao hàng”</td>
+<td>Payment / Fulfillment</td>
+<td>Vì sao không thể dùng một status duy nhất?</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-2-ubiquitous-language-th-ng-nh-t-t-v-ng-tr-c-khi-code">3.2. Ubiquitous Language — thống nhất từ vựng trước khi code</h2>
+<p>Trong Domain-Driven Design, <strong>ubiquitous language</strong> là ngôn ngữ chung được dùng nhất quán giữa business và engineering trong một phạm vi nghiệp vụ. Nó không đồng nghĩa “dịch mọi tên sang tiếng Anh”, mà là làm rõ nghĩa của từ.</p>
+<p>Ví dụ business nói: “Còn 10 máy”. Engineer phải hỏi: 10 máy <strong>thực tế trong kho</strong>, 10 máy <strong>được phép bán</strong>, hay 10 máy <strong>đã trừ lượng giữ hàng</strong>?</p>
+<table>
+<thead>
+<tr>
+<th>Từ trong dự án</th>
+<th>Định nghĩa vận hành trong ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product</td>
+<td>Thông tin chung về một dòng hàng được nhận diện trong catalog</td>
+</tr>
+<tr>
+<td>Variant / SKU</td>
+<td>Biến thể định danh đơn vị hàng có thể bán: màu + dung lượng</td>
+</tr>
+<tr>
+<td>Seller Offer</td>
+<td>Lời chào bán của một seller cho một variant: giá và điều kiện bán</td>
+</tr>
+<tr>
+<td>On-hand Stock</td>
+<td>Số lượng vật lý ghi nhận trong kho theo định nghĩa kế toán kho của hệ thống</td>
+</tr>
+<tr>
+<td>Reserved Stock</td>
+<td>Số lượng đang được giữ cho yêu cầu mua hợp lệ</td>
+</tr>
+<tr>
+<td>Available Stock</td>
+<td>Khả năng tiếp tục bán được suy ra từ các số liệu tồn kho</td>
+</tr>
+<tr>
+<td>Cart Item</td>
+<td>Ý định mua; thường chưa giữ tồn kho</td>
+</tr>
+<tr>
+<td>Order Item</td>
+<td>Dòng hàng trong giao dịch đã được chốt, có dữ liệu snapshot</td>
+</tr>
+<tr>
+<td>Payment Attempt</td>
+<td>Một lần thử thực hiện thanh toán cho đơn/nhóm đơn</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lưu ý thực tế:</strong> Nhiều doanh nghiệp dùng “SKU” để chỉ mã hàng do seller tự đặt, trong khi một marketplace có thể dùng mã variant chung riêng với seller SKU. Ta phải ghi rõ hai namespace, không tranh luận rằng chỉ có một định nghĩa SKU duy nhất.</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-02.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 02" loading="lazy" src="assets/chapter-03/diagram-02.svg"/></a><figcaption><strong>Sơ đồ 02</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart LR
+    B["Business language"] --&gt; G["Glossary / Event storming"]
+    G --&gt; R["Business rules"]
+    R --&gt; M["Domain model"]
+    M --&gt; DB["Schema &amp; API"]
+    DB --&gt; B
+</pre></details></figcaption></figure>
+<h3 id="k-thu-t-h-i-d-kh-m-ph-domain">Kỹ thuật hỏi để khám phá domain</h3>
+<p>Với mọi khái niệm, hỏi năm câu: <strong>nó là gì; ai sở hữu; khi nào sinh ra; khi nào thay đổi; khi nào chấm dứt</strong>. Ví dụ <code>Reservation</code> sinh ra lúc checkout được chấp nhận, tồn tại trong trạng thái <code>ACTIVE</code>, sau đó chuyển <code>CONFIRMED</code>, <code>RELEASED</code> hoặc <code>EXPIRED</code> theo quy tắc. Có một <code>reservation_id</code> riêng sẽ giúp trace và chống hoàn hàng hai lần.</p>
+<h2 id="3-3-entity-kh-c-value-object-ra-sao">3.3. Entity khác Value Object ra sao?</h2>
+<h3 id="entity-th-c-n-theo-d-i-danh-t-nh">Entity: thứ cần theo dõi danh tính</h3>
+<p>Hai đơn hàng có cùng customer, số tiền và sản phẩm vẫn là <strong>hai đơn khác nhau</strong> vì có <code>order_id</code> khác nhau. Danh tính và vòng đời là trọng tâm. Tương tự, hai Payment Attempt cùng số tiền vẫn khác nhau.</p>
+<h3 id="value-object-th-d-c-d-nh-ngh-a-b-ng-gi-tr">Value Object: thứ được định nghĩa bằng giá trị</h3>
+<p><code>Money(10000000, "VND")</code> và <code>Money(10000000, "VND")</code> có thể được coi là cùng một giá trị. <code>ShippingAddressSnapshot</code> thường được lưu như giá trị trong order vì sau khi khách thay đổi sổ địa chỉ, địa chỉ giao hàng của order đã chốt không được tự thay đổi.</p>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Thường mô hình hóa</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Order</td>
+<td>Entity</td>
+<td>Có identity, trạng thái, lịch sử</td>
+</tr>
+<tr>
+<td>Order Item</td>
+<td>Entity con của Order Aggregate trong ví dụ</td>
+<td>Cần định danh dòng hàng để hủy/hoàn một phần</td>
+</tr>
+<tr>
+<td>Payment Attempt</td>
+<td>Entity</td>
+<td>Có vòng đời và mã giao dịch riêng</td>
+</tr>
+<tr>
+<td>Money</td>
+<td>Value Object</td>
+<td>Giá trị + đơn vị tiền; arithmetic phải đúng currency</td>
+</tr>
+<tr>
+<td>Address trong Order</td>
+<td>Value Object snapshot</td>
+<td>Không tự thay đổi khi profile đổi</td>
+</tr>
+<tr>
+<td>Address Book Entry của khách</td>
+<td>Có thể là Entity</td>
+<td>Nếu sửa/xóa/quản lý theo ID qua thời gian</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Không đánh đồng “Entity trong DDD” với <code>@Entity</code> JPA.</strong> <code>@Entity</code> là mapping cho persistence; một domain Value Object có thể được lưu nhiều cột, và một domain Entity có thể cần nhiều bảng để biểu diễn. Tài liệu Microsoft nhấn mạnh identity của Entity và đặc tính không có danh tính độc lập của Value Object [R1, R2].</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-03.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 03" loading="lazy" src="assets/chapter-03/diagram-03.svg"/></a><figcaption><strong>Sơ đồ 03</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart LR
+    O["Order #1001 · Entity"] --&gt; I["Order Item #1 · Child Entity"]
+    O --&gt; M["Money(10m,VND) · Value Object"]
+    O --&gt; A["Address Snapshot · Value Object"]
+    I --&gt; S["SKU ID · Reference"]
+</pre></details></figcaption></figure>
+<h3 id="money-tr-nh-double">Money: tránh <code>double</code></h3>
+<p>Số tiền phải được tính bằng kiểu có độ chính xác phù hợp (<code>BigDecimal</code> trong Java và <code>NUMERIC</code> trong PostgreSQL) hoặc đơn vị tiền nguyên nhỏ nhất theo chính sách. <code>double</code> là floating point nhị phân, không phù hợp để lưu kết quả thanh toán chính xác [R4]. <code>Money</code> phải mang theo currency; không được cộng VND với USD mà bỏ qua quy đổi và tỷ giá.</p>
+<p>Ví dụ Value Object tối giản:</p>
+<pre><code class="language-java">public record Money(BigDecimal amount, String currency) {
+    public Money {
+        Objects.requireNonNull(amount);
+        Objects.requireNonNull(currency);
+        if (currency.isBlank()) throw new IllegalArgumentException("currency");
+    }
+
+    public Money add(Money other) {
+        if (!currency.equals(other.currency())) {
+            throw new IllegalArgumentException("Currency mismatch");
+        }
+        return new Money(amount.add(other.amount()), currency);
+    }
+}
+</code></pre>
+<p>Code là minh họa ý tưởng; production còn phải chuẩn hóa currency, scale, rounding và giới hạn số tiền.</p>
+<h2 id="3-4-t-ch-product-variant-offer-inventory-order-snapshot">3.4. Tách Product / Variant / Offer / Inventory / Order Snapshot</h2>
+<p>Đây là bản nâng cấp mô hình từ chương 02. Hãy tưởng tượng mẫu Smartphone X được bán bởi hai seller:</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Giá trị ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product</td>
+<td>Smartphone X</td>
+</tr>
+<tr>
+<td>Variant</td>
+<td>Black / 256GB</td>
+</tr>
+<tr>
+<td>Offer A</td>
+<td>Seller A, 10.000.000 VND</td>
+</tr>
+<tr>
+<td>Offer B</td>
+<td>Seller B, 9.800.000 VND</td>
+</tr>
+<tr>
+<td>Inventory A</td>
+<td>Seller A ở kho HN: 8 còn bán được</td>
+</tr>
+<tr>
+<td>Inventory B</td>
+<td>Seller B ở kho HCM: 2 còn bán được</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-03/diagram-04.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 04" loading="lazy" src="assets/chapter-03/diagram-04.svg"/></a><figcaption><strong>Sơ đồ 04</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    P["Product: Smartphone X"] --&gt; V["Variant: Black / 256 GB"]
+    V --&gt; OA["Offer A · Seller A · 10m VND"]
+    V --&gt; OB["Offer B · Seller B · 9.8m VND"]
+    OA --&gt; IA["Inventory A · HN · 8"]
+    OB --&gt; IB["Inventory B · HCM · 2"]
+    OA -.-&gt; OI["Order item snapshot · offer A · captured price"]
+</pre></details></figcaption></figure>
+<p><strong>Vì sao <code>price</code> không nhất thiết đặt trong <code>products</code>?</strong> Cùng một định danh catalog có thể xuất hiện trong nhiều lời chào bán khác nhau. Giá có thể phụ thuộc seller, thời điểm, đối tượng mua, số lượng hay chương trình giảm giá. Mô hình chi tiết của Pricing Engine sẽ được khai thác sâu hơn ở chương 04.</p>
+<p><strong>Vì sao inventory không đơn giản là <code>products.stock</code>?</strong> Một offer có thể cung cấp từ nhiều kho. Một kho có thể có số hàng on-hand nhưng một phần đã reserved. Tồn kho thuộc <strong>đơn vị có thể bán và nguồn cung</strong> chứ không thuộc mô tả sản phẩm chung.</p>
+<p><strong>Vì sao Order Item lưu snapshot?</strong> <code>offer_id</code> chỉ là tham chiếu về đối tượng gốc. Order Item phải ghi <code>sku_code_snapshot</code>, <code>title_snapshot</code>, <code>unit_price</code>, <code>currency</code>, discount/tax basis phù hợp và số lượng để tái dựng giao dịch lịch sử. Không lấy trực tiếp <code>offers.price</code> hiện tại để tính lại đơn cũ.</p>
+<blockquote>
+<p>Với sản phẩm đồ cũ độc nhất, có thể không cần canonical product matching. <code>Listing</code> có thể đại diện trực tiếp cho hàng bán; mô hình phải phục vụ business, không bắt business chạy theo sơ đồ mẫu.</p>
+</blockquote>
+<h2 id="3-5-quan-h-gi-a-c-c-domain-kh-ng-ph-i-m-i-m-i-t-n-l-foreign-key">3.5. Quan hệ giữa các domain: không phải mọi mũi tên là foreign key</h2>
+<p>Có ít nhất bốn loại quan hệ cần phân biệt:</p>
+<ol>
+<li><strong>Composition trong aggregate:</strong> <code>Order</code> quản lý <code>OrderItem</code>.</li>
+<li><strong>Identity reference giữa aggregates:</strong> <code>OrderItem</code> lưu <code>offerId</code> để biết mua lời chào bán nào, nhưng dữ liệu hợp đồng đã chốt nằm trong snapshot.</li>
+<li><strong>Database foreign key:</strong> đảm bảo ID liên quan tồn tại nếu cùng DB và phù hợp lifecycle; không thay được mọi business rule.</li>
+<li><strong>Integration relationship:</strong> Order thông báo Payment/Fulfillment qua event/API; không nhất thiết dùng FK hoặc chung database.</li>
+</ol>
+<figure class="diagram"><a href="assets/chapter-03/diagram-05.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 05" loading="lazy" src="assets/chapter-03/diagram-05.svg"/></a><figcaption><strong>Sơ đồ 05</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart LR
+    subgraph A["Order Aggregate"]
+       O["Order"] --&gt; I1["OrderItem #1"]
+       O --&gt; I2["OrderItem #2"]
+    end
+    O -. "customerId" .-&gt; C["Customer Aggregate"]
+    I1 -. "offerId" .-&gt; OF["Offer Aggregate"]
+    O -. "payment event" .-&gt; PM["Payment Context"]
+</pre></details></figcaption></figure>
+<h3 id="bad-case-jpa-graph-xuy-n-to-n-b-h-th-ng">Bad case: JPA graph xuyên toàn bộ hệ thống</h3>
+<p>Nếu <code>Order</code> có <code>@ManyToOne Customer</code>, mỗi item <code>@ManyToOne Offer</code>, Offer <code>@ManyToOne Product</code>, Product <code>@OneToMany Reviews</code> và API serialize nguyên entity, bạn có thể gặp query N+1, vòng lặp JSON, lazy loading ngoài transaction và coupling giữa module.</p>
+<p>Thay vào đó, request/response API nên dùng DTO rõ mục đích; aggregate liên hệ qua ID khi thích hợp; truy vấn đọc có thể join/projection riêng, không bị buộc phải đi qua domain entity graph.</p>
+<h2 id="3-6-bounded-context-c-ng-m-t-t-c-th-mang-nhi-u-ngh-a">3.6. Bounded Context: cùng một từ có thể mang nhiều ý nghĩa</h2>
+<p>Trong một E-commerce, từ <code>Product</code> xuất hiện ở nhiều nơi nhưng không phải chỗ nào cũng cần cùng một model:</p>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Cần biết gì về sản phẩm?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Catalog</td>
+<td>Tên, mô tả, ảnh, thuộc tính, category</td>
+</tr>
+<tr>
+<td>Pricing</td>
+<td>Đối tượng định giá, currency, chính sách và phiên bản giá</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td>Mã hàng/offer và nguồn cung theo kho</td>
+</tr>
+<tr>
+<td>Ordering</td>
+<td>Snapshot mặt hàng mà khách đã mua</td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Document được tối ưu tìm kiếm, có thể chậm hơn Catalog</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-03/diagram-06.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 06" loading="lazy" src="assets/chapter-03/diagram-06.svg"/></a><figcaption><strong>Sơ đồ 06</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    C["Catalog Context"] --&gt;|"ProductPublished"| S["Search Context"]
+    C --&gt;|"VariantId"| P["Pricing Context"]
+    P --&gt;|"OfferId + Quote"| O["Ordering Context"]
+    I["Inventory Context"] --&gt;|"Reservation result"| O
+    O --&gt;|"OrderPlaced"| Pay["Payment Context"]
+</pre></details></figcaption></figure>
+<p><strong>Bounded Context không đồng nghĩa microservice.</strong> Trong dự án đầu tiên, năm context vẫn có thể nằm trong một Spring Boot và một database; boundaries thể hiện ở package/module, API nội bộ, quyền ghi và quy tắc phụ thuộc. Tài liệu Microsoft nêu việc tách model theo context, và xem microservice là một lựa chọn triển khai boundary chứ không phải định nghĩa của domain [R1, R2].</p>
+<h3 id="context-ownership-matrix">Context ownership matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Dữ liệu / quyết định</th>
+<th>Owner trong thiết kế ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product description</td>
+<td>Catalog</td>
+</tr>
+<tr>
+<td>Seller offer price</td>
+<td>Pricing / Offer management theo quyết định team</td>
+</tr>
+<tr>
+<td>On-hand và reserved quantity</td>
+<td>Inventory</td>
+</tr>
+<tr>
+<td>Confirmed order total</td>
+<td>Ordering</td>
+</tr>
+<tr>
+<td>Provider transaction status</td>
+<td>Payments</td>
+</tr>
+<tr>
+<td>Parcel / shipping label</td>
+<td>Fulfillment</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Quy tắc:</strong> cùng một dữ liệu có thể được sao chép phục vụ READ nhưng không nên có nhiều nơi tùy ý chỉnh cùng một sự thật nghiệp vụ.</p>
+<h2 id="3-7-aggregate-v-aggregate-root-t-c-m-b-ng-sang-ranh-gi-i-t-nh-d-ng-d-n">3.7. Aggregate và Aggregate Root: từ “cụm bảng” sang “ranh giới tính đúng đắn”</h2>
+<p>Một Aggregate là nhóm đối tượng nghiệp vụ phải giữ <strong>một tập invariant nhất quán</strong> khi được thay đổi. Aggregate Root là cửa vào cho các thao tác cập nhật nhóm đó. Nó có thể chỉ có <strong>một entity</strong>, không bắt buộc là 10 bảng. Đây là cách tài liệu tactical DDD mô tả transactional consistency boundaries [R1, R2].</p>
+<p>Ví dụ với <code>Order</code>:</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-07.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 07" loading="lazy" src="assets/chapter-03/diagram-07.svg"/></a><figcaption><strong>Sơ đồ 07</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TB
+    subgraph ORDER["Order Aggregate: nhất quán tại commit"]
+      O["Order · Aggregate Root"]
+      O --&gt; I1["Order Item A"]
+      O --&gt; I2["Order Item B"]
+      O --&gt; T["Total Money Snapshot"]
+      O --&gt; AD["Shipping Address Snapshot"]
+    end
+    ORDER -. "sellerId" .-&gt; SELL["Seller Aggregate"]
+    ORDER -. "payment attempt" .-&gt; PAY["Payment Aggregate"]
+    ORDER -. "reserve stock" .-&gt; INV["Inventory Aggregate"]
+</pre></details></figcaption></figure>
+<p><strong>Các invariant ví dụ trong Order:</strong></p>
+<ul>
+<li>Không tạo order không có item nếu business không cho phép.</li>
+<li><code>quantity &gt; 0</code> cho mỗi dòng hàng.</li>
+<li>Các item và tổng tiền là dữ liệu snapshot nhất quán theo chính sách tính tiền.</li>
+<li>Không chuyển <code>CANCELLED → PAID</code> chỉ bằng một lệnh tùy ý; mọi state transition phải được định nghĩa.</li>
+</ul>
+<p><strong>Inventory aggregate</strong> bảo vệ bất biến riêng: <code>reserved_quantity &lt;= on_hand_quantity</code> và không được trừ/giải phóng vượt số lượng. Lưu ý, CHECK trên stock row không tự bảo đảm tổng <code>quantity</code> ở bảng reservations luôn bằng <code>reserved_quantity</code>; các bước tạo, xác nhận và giải phóng reservation phải cập nhật đồng bộ theo transaction. <strong>Payment aggregate</strong> bảo vệ chống xử lý trùng provider transaction và tính hợp lệ của payment state.</p>
+<h3 id="c-ph-i-m-t-transactional-m-t-aggregate">Có phải một <code>@Transactional</code> = một Aggregate?</h3>
+<p><strong>Không.</strong> Aggregate là ranh giới mô hình nghiệp vụ. Database transaction là công cụ persistence để giữ tính nhất quán. Một use case có thể cần cập nhật nhiều aggregates trong cùng một database transaction, chẳng hạn tạo Order và đặt Reservation, nếu phù hợp độ phức tạp và lock behavior. Điều đó không bắt hai aggregates phải gộp thành một object graph. Khi đã tách database/service, ta không còn mặc định một local ACID transaction bao phủ được mọi nơi.</p>
+<h2 id="3-8-business-invariants-chuy-n-t-c-u-n-i-th-nh-lu-t-c-th-ki-m-th">3.8. Business Invariants: chuyển từ câu nói thành luật có thể kiểm thử</h2>
+<p>Nhiều developer viết <code>validate()</code> rải rác trong controller, rồi tưởng rằng đã bảo vệ dữ liệu. Câu hỏi đúng là: <strong>điều kiện nào phải đúng kể cả khi 20 Pod và 100 Worker gọi đồng thời?</strong></p>
+<table>
+<thead>
+<tr>
+<th>Invariant</th>
+<th>Cách bảo vệ khả thi</th>
+<th>Ranh giới</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Offer price không âm</td>
+<td>Domain validation + DB CHECK</td>
+<td>Offer</td>
+</tr>
+<tr>
+<td>Stock reserved không vượt on-hand</td>
+<td>Atomic DB update + CHECK</td>
+<td>Inventory row</td>
+</tr>
+<tr>
+<td>Order item quantity dương</td>
+<td>Domain validation + DB CHECK</td>
+<td>Order</td>
+</tr>
+<tr>
+<td>Client retry không tạo đơn lần hai</td>
+<td>Idempotency key + UNIQUE + transaction</td>
+<td>Ordering</td>
+</tr>
+<tr>
+<td>Order total không dùng giá hiện hành để tính lại</td>
+<td>Price snapshot + server-side calculation</td>
+<td>Ordering</td>
+</tr>
+<tr>
+<td>Một reservation không được release hai lần</td>
+<td>Conditional state transition + transaction</td>
+<td>Inventory</td>
+</tr>
+<tr>
+<td>Seller không sửa offer seller khác</td>
+<td>Authenticated actor + ownership check</td>
+<td>Offer management</td>
+</tr>
+</tbody>
+</table>
+<h3 id="check-constraint-d-d-ng-n-overselling">Check constraint đủ để ngăn overselling?</h3>
+<p>Với hai cột trên <strong>cùng một dòng stock</strong>, CHECK là lớp chặn cuối cùng hữu ích:</p>
+<pre><code class="language-sql">CHECK (on_hand_quantity &gt;= 0),
+CHECK (reserved_quantity &gt;= 0),
+CHECK (reserved_quantity &lt;= on_hand_quantity)
+</code></pre>
+<p>Nhưng nếu dữ liệu tổng nằm rải ở nhiều dòng hay nhiều bảng, PostgreSQL <code>CHECK</code> không được dùng như cơ chế đảm bảo điều kiện xuyên bảng. Khi cần, dùng transaction, FK/UNIQUE, atomic update, trigger đã kiểm chứng hoặc thiết kế lại trạng thái trung tâm [R3].</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-08.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 08" loading="lazy" src="assets/chapter-03/diagram-08.svg"/></a><figcaption><strong>Sơ đồ 08</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart LR
+    A["Request validation"] --&gt; D["Domain rules"]
+    D --&gt; T["DB transaction / atomic update"]
+    T --&gt; C["PK · FK · UNIQUE · CHECK"]
+    C --&gt; O["Consistent committed state"]
+</pre></details></figcaption></figure>
+<h2 id="3-9-state-machine-status-l-h-p-d-ng-nghi-p-v-kh-ng-ph-i-chu-i-t-y">3.9. State Machine: <code>status</code> là hợp đồng nghiệp vụ, không phải chuỗi tùy ý</h2>
+<p>Nếu mọi module cùng gọi <code>order.setStatus("SUCCESS")</code>, mỗi team sẽ hiểu khác nhau: đã tạo đơn, đã trả tiền hay đã giao xong? Hãy dùng từ có nghĩa và mô hình trạng thái rõ.</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-09.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 09" loading="lazy" src="assets/chapter-03/diagram-09.svg"/></a><figcaption><strong>Sơ đồ 09</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>stateDiagram-v2
+    [*] --&gt; PENDING_PAYMENT
+    PENDING_PAYMENT --&gt; PAID: payment verified
+    PENDING_PAYMENT --&gt; CANCELLED: timeout/cancel
+    PAID --&gt; FULFILLING: hand over to warehouse
+    FULFILLING --&gt; SHIPPED: carrier accepted
+    SHIPPED --&gt; DELIVERED: delivery confirmed
+    PAID --&gt; REFUND_PENDING: eligible cancellation
+    REFUND_PENDING --&gt; REFUNDED: refund confirmed
+</pre></details></figcaption></figure>
+<p>Sơ đồ trên <strong>chỉ minh họa</strong> một order flow; không đại diện mọi chính sách hủy, hoàn một phần, COD hoặc shipment nhiều kiện. Với marketplace, nên tách <code>order_group</code>, <code>seller_order</code>, <code>payment_attempt</code>, <code>shipment</code>, <code>refund</code> thành state machine có trách nhiệm riêng.</p>
+<h3 id="bad-case-k-t-h-p-tr-ng-th-i-kh-ng-h-p-l">Bad case: kết hợp trạng thái không hợp lệ</h3>
+<p>Ví dụ <code>order.payment_status = PAID</code>, <code>order.fulfillment_status = NOT_STARTED</code> là trạng thái <strong>có thể hoàn toàn hợp lệ</strong>. Nếu dùng một cột <code>status</code>, bạn dễ đánh mất thông tin quan trọng.</p>
+<h2 id="3-10-thi-t-k-database-schema-tham-kh-o-cho-ho-ng-marketplace">3.10. Thiết kế Database Schema tham khảo cho Hoàng Marketplace</h2>
+<p>Chúng ta chọn mô hình học tập: <strong>một order group có tối đa một seller order cho mỗi seller; mỗi order item có tối đa một reservation trong một kho; tất cả trong một PostgreSQL</strong>. Đây là giới hạn có chủ đích để schema hiểu được. Khi một item chia nhiều kho hoặc nhiều shipment, cần mở rộng reservation/allocation tương ứng.</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-10.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 10" loading="lazy" src="assets/chapter-03/diagram-10.svg"/></a><figcaption><strong>Sơ đồ 10</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>erDiagram
+    PRODUCT ||--o{ PRODUCT_VARIANT : has
+    PRODUCT_VARIANT ||--o{ SELLER_OFFER : listed_as
+    SELLER ||--o{ SELLER_OFFER : owns
+    SELLER_OFFER ||--o{ INVENTORY_STOCK : stocked_in
+    WAREHOUSE ||--o{ INVENTORY_STOCK : hosts
+    ORDER_GROUP ||--o{ SELLER_ORDER : splits_to
+    SELLER ||--o{ SELLER_ORDER : fulfills
+    SELLER_ORDER ||--o{ ORDER_ITEM : contains
+    SELLER_OFFER ||--o{ ORDER_ITEM : purchased_as
+    ORDER_ITEM ||--o| STOCK_RESERVATION : reserves
+    ORDER_GROUP ||--o{ PAYMENT_ATTEMPT : tries
+</pre></details></figcaption></figure>
+<h3 id="3-10-1-b-b-ng-t-i-thi-u-v-quy-n-s-h-u">3.10.1. Bộ bảng tối thiểu và quyền sở hữu</h3>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>ID quan trọng</th>
+<th>Điểm thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>products</code></td>
+<td>product_id</td>
+<td>Canonical catalog identity</td>
+</tr>
+<tr>
+<td><code>product_variants</code></td>
+<td>variant_id, sku_code</td>
+<td>Một biến thể thuộc một product</td>
+</tr>
+<tr>
+<td><code>sellers</code></td>
+<td>seller_id</td>
+<td>Chủ sở hữu offer/order phần seller</td>
+</tr>
+<tr>
+<td><code>seller_offers</code></td>
+<td>offer_id, seller_id, variant_id</td>
+<td>Giá của lời chào bán</td>
+</tr>
+<tr>
+<td><code>warehouses</code></td>
+<td>warehouse_id, seller_id</td>
+<td>Kho thuộc seller trong ví dụ</td>
+</tr>
+<tr>
+<td><code>inventory_stock</code></td>
+<td>offer_id + warehouse_id</td>
+<td>Một stock row cho nguồn cung</td>
+</tr>
+<tr>
+<td><code>order_groups</code></td>
+<td>order_group_id, customer_id</td>
+<td>Một checkout của khách</td>
+</tr>
+<tr>
+<td><code>seller_orders</code></td>
+<td>seller_order_id, group_id, seller_id</td>
+<td>Một seller chịu trách nhiệm phần đơn</td>
+</tr>
+<tr>
+<td><code>order_items</code></td>
+<td>order_item_id, seller_order_id, offer_id</td>
+<td>Snapshot dòng hàng</td>
+</tr>
+<tr>
+<td><code>stock_reservations</code></td>
+<td>reservation_id, order_item_id</td>
+<td>Giữ hàng có lifecycle</td>
+</tr>
+<tr>
+<td><code>payment_attempts</code></td>
+<td>payment_attempt_id, group_id</td>
+<td>Mỗi lần thử thanh toán</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-10-2-sql-c-th-ki-m-tra-trong-postgresql">3.10.2. SQL có thể kiểm tra trong PostgreSQL</h3>
+<p>File SQL đầy đủ đi kèm trong <code>labs/chapter-03/schema.sql</code>. Trích đoạn quan trọng:</p>
+<pre><code class="language-sql">CREATE TABLE seller_offers (
+  offer_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  seller_id BIGINT NOT NULL REFERENCES sellers(seller_id),
+  variant_id BIGINT NOT NULL REFERENCES product_variants(variant_id),
+  unit_price NUMERIC(18, 2) NOT NULL CHECK (unit_price &gt;= 0),
+  currency CHAR(3) NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('DRAFT','ACTIVE','PAUSED')),
+  UNIQUE (offer_id, seller_id)
+);
+
+CREATE TABLE inventory_stock (
+  offer_id BIGINT NOT NULL,
+  seller_id BIGINT NOT NULL,
+  warehouse_id BIGINT NOT NULL,
+  on_hand_quantity INTEGER NOT NULL CHECK (on_hand_quantity &gt;= 0),
+  reserved_quantity INTEGER NOT NULL DEFAULT 0 CHECK (reserved_quantity &gt;= 0),
+  PRIMARY KEY (offer_id, warehouse_id),
+  FOREIGN KEY (offer_id, seller_id)
+    REFERENCES seller_offers(offer_id, seller_id),
+  FOREIGN KEY (warehouse_id, seller_id)
+    REFERENCES warehouses(warehouse_id, seller_id),
+  CHECK (reserved_quantity &lt;= on_hand_quantity)
+);
+</code></pre>
+<p>Composite FK bảo vệ để tồn kho của Seller A không bị đặt vào kho Seller B trong mô hình giả định. Việc seller được phép dùng fulfillment warehouse chung sẽ yêu cầu sửa quy tắc sở hữu này; không nên giữ cứng khi business thay đổi.</p>
+<h3 id="3-10-3-gi-ch-t-trong-order-item">3.10.3. Giá chốt trong Order Item</h3>
+<pre><code class="language-sql">CREATE TABLE order_items (
+  order_item_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  seller_order_id BIGINT NOT NULL REFERENCES seller_orders(seller_order_id),
+  offer_id BIGINT NOT NULL REFERENCES seller_offers(offer_id),
+  sku_code_snapshot TEXT NOT NULL,
+  title_snapshot TEXT NOT NULL,
+  quantity INTEGER NOT NULL CHECK (quantity &gt; 0),
+  unit_price_snapshot NUMERIC(18,2) NOT NULL
+    CHECK (unit_price_snapshot &gt;= 0),
+  currency CHAR(3) NOT NULL
+);
+</code></pre>
+<p><strong>Lưu ý consistency:</strong> chỉ có FK <code>offer_id</code> vẫn chưa đảm bảo offer và seller order thuộc cùng seller. Ở schema đầy đủ, <code>seller_id</code> trên <code>order_items</code> được xác minh qua composite FK đến cả offer và seller order. Đừng coi việc join đúng ở một API là bảo vệ toàn hệ thống.</p>
+<h2 id="3-11-transaction-boundary-trong-use-case-placeorder">3.11. Transaction Boundary trong use case <code>PlaceOrder</code></h2>
+<h3 id="ranh-gi-i-nguy-n-t-n-u-order-v-inventory-c-ng-db">Ranh giới nguyên tử nếu Order và Inventory cùng DB</h3>
+<p>Từ request, server resolve Offer và current quote; xác thực seller/availability; tạo Order; giữ stock; commit. Các thay đổi liên quan cần được quản lý bằng một local transaction phù hợp. <strong>Không gọi HTTP Payment Gateway khi đang giữ row lock trong transaction</strong>.</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-11.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 11" loading="lazy" src="assets/chapter-03/diagram-11.svg"/></a><figcaption><strong>Sơ đồ 11</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant U as Customer
+    participant A as Order Application Service
+    participant DB as PostgreSQL
+    participant PG as Payment Gateway
+    U-&gt;&gt;A: PlaceOrder (idempotency key)
+    A-&gt;&gt;DB: BEGIN
+    A-&gt;&gt;DB: Validate current offer &amp; reserve stock
+    DB--&gt;&gt;A: Reservation success
+    A-&gt;&gt;DB: Insert order &amp; item snapshots
+    A-&gt;&gt;DB: COMMIT
+    A--&gt;&gt;U: Order pending payment
+    U-&gt;&gt;A: Start payment
+    A-&gt;&gt;PG: Create payment attempt
+    PG--&gt;&gt;A: Async result / pending
+</pre></details></figcaption></figure>
+<p>Một cách trừ <strong>available</strong> để tăng <strong>reserved</strong> an toàn tại PostgreSQL:</p>
+<pre><code class="language-sql">UPDATE inventory_stock
+SET reserved_quantity = reserved_quantity + :quantity
+WHERE offer_id = :offer_id
+  AND warehouse_id = :warehouse_id
+  AND on_hand_quantity - reserved_quantity &gt;= :quantity
+RETURNING offer_id, on_hand_quantity, reserved_quantity;
+</code></pre>
+<p>Nếu không có dòng trả về, không được coi là đã giữ thành công. PostgreSQL xử lý UPDATE đồng thời với row locking và kiểm tra điều kiện thích hợp khi tiếp tục, nhưng toàn bộ use case vẫn phải thiết kế retry/timeout và constraint đúng [R5]. Khi reservation thực sự được tiêu thụ để xuất hàng theo chính sách ví dụ, <code>on_hand_quantity</code> và <code>reserved_quantity</code> phải cùng giảm đúng <code>quantity</code> trong một transaction kèm chuyển trạng thái reservation. Nếu đơn bị hủy trước khi xuất hàng, chỉ <code>reserved_quantity</code> giảm khi giải phóng thành công; <code>on_hand_quantity</code> không đổi.</p>
+<h3 id="khi-n-o-kh-ng-n-n-g-p-v-o-m-t-aggregate">Khi nào không nên gộp vào một Aggregate?</h3>
+<p>Order và Stock có lifecycle khác nhau. Một Order cần giữ stock cho từng line, nhưng stock có thể bị điều chỉnh bởi nhập kho, hỏng hàng, xuất kho và đơn khác. Gộp tất cả thành một <code>Order</code> object cực lớn không làm transaction “an toàn hơn”; nó tạo coupling và có thể tăng contention.</p>
+<h2 id="3-12-modular-monolith-trong-spring-boot">3.12. Modular Monolith trong Spring Boot</h2>
+<p>Chọn phân chia package theo <strong>business capability</strong>, không chia toàn dự án thành các package toàn cục <code>controller</code>, <code>service</code>, <code>repository</code>, <code>entity</code> khiến code của mỗi use case rải khắp nơi.</p>
+<pre><code class="language-text">com.hoang.marketplace/
+├── catalog/
+│   ├── api/
+│   ├── application/
+│   ├── domain/
+│   └── infrastructure/
+├── offers/
+├── inventory/
+├── ordering/
+│   ├── api/PlaceOrderController.java
+│   ├── application/PlaceOrderService.java
+│   ├── domain/Order.java
+│   ├── domain/OrderItem.java
+│   ├── domain/Money.java
+│   └── infrastructure/OrderJpaRepository.java
+├── payments/
+└── fulfillment/
+</code></pre>
+<figure class="diagram"><a href="assets/chapter-03/diagram-12.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 12" loading="lazy" src="assets/chapter-03/diagram-12.svg"/></a><figcaption><strong>Sơ đồ 12</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    API["REST Controller"] --&gt; APP["Application Service"]
+    APP --&gt; DOM["Domain Aggregate / Domain Service"]
+    APP --&gt; PORT["Repository Port"]
+    INF["JPA Adapter"] --&gt; PORT
+    INF --&gt; DB[("PostgreSQL")]
+    APP -. "domain event" .-&gt; EV["Other Module"]
+</pre></details></figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Nên làm</th>
+<th>Không nên làm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API / Controller</td>
+<td>Parse request, auth boundary, map DTO/status</td>
+<td>Tự trừ stock và sửa state machine</td>
+</tr>
+<tr>
+<td>Application Service</td>
+<td>Điều phối use case, transaction, idempotency</td>
+<td>Nhồi toàn bộ invariant vào <code>if</code> rải rác</td>
+</tr>
+<tr>
+<td>Domain</td>
+<td>Business rule, state transitions, Value Object</td>
+<td>Phụ thuộc HTTP, controller, Spring MVC</td>
+</tr>
+<tr>
+<td>Infrastructure</td>
+<td>SQL, JPA, broker, external provider</td>
+<td>Quyết định ai được phép mua dựa trên input chưa xác thực</td>
+</tr>
+</tbody>
+</table>
+<p>DDD <strong>không ép tất cả module phải có rich domain model</strong>. Catalog CRUD thuần túy có thể đơn giản hơn; Inventory và Ordering thường chứa nhiều invariant và hành vi cần mô hình hóa rõ. Tài liệu Microsoft cũng lưu ý DDD pattern đặc biệt hữu ích với domain phức tạp, còn CRUD đơn giản không cần bị over-engineer [R1].</p>
+<h3 id="java-domain-v-d-kh-ng-cho-ai-t-y-d-i-tr-ng-th-i">Java Domain ví dụ: không cho ai tùy ý đổi trạng thái</h3>
+<pre><code class="language-java">public final class Order {
+    private final long id;
+    private OrderStatus status;
+
+    public void markPaid() {
+        if (status != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Invalid transition");
+        }
+        status = OrderStatus.PAID;
+    }
+
+    public void cancelBeforePayment() {
+        if (status != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Cannot cancel here");
+        }
+        status = OrderStatus.CANCELLED;
+    }
+}
+</code></pre>
+<p>Ví dụ này chỉ mô tả invariant trạng thái. Hệ thống thực tế cần map trạng thái Payment verified, xử lý đồng thời, nhiều trạng thái hủy/hoàn tiền, lưu vết và persistence.</p>
+<h2 id="3-13-domain-events-th-g-d-x-y-ra-kh-ng-ph-i-m-t-l-nh-sql">3.13. Domain Events: thứ gì đã xảy ra, không phải một lệnh SQL</h2>
+<p><code>OrderPlaced</code>, <code>StockReserved</code>, <code>PaymentVerified</code>, <code>ReservationExpired</code> là các sự kiện có nghĩa nghiệp vụ. <code>row_inserted</code>, <code>table_updated</code> chỉ nói về persistence.</p>
+<figure class="diagram"><a href="assets/chapter-03/diagram-13.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 13" loading="lazy" src="assets/chapter-03/diagram-13.svg"/></a><figcaption><strong>Sơ đồ 13</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant O as Ordering
+    participant DB as PostgreSQL
+    participant W as Outbox publisher
+    participant P as Payments
+    O-&gt;&gt;DB: Commit Order + Outbox event
+    W-&gt;&gt;DB: Read pending outbox
+    W-&gt;&gt;P: OrderPlaced integration event
+    P--&gt;&gt;W: Acknowledge
+    W-&gt;&gt;DB: Mark delivered
+</pre></details></figcaption></figure>
+<p>Với các module cùng process và database, bạn có thể xử lý một số domain event nội bộ trong use case. Nếu dùng broker hoặc service bên ngoài, phải nghĩ đến <strong>DB committed nhưng event không gửi được</strong>. Transactional Outbox là một hướng giải quyết: ghi sự kiện trong cùng DB transaction, rồi xuất bản bất đồng bộ. Consumer vẫn cần idempotent vì event có thể được gửi lại.</p>
+<p>Đừng làm toàn bộ event-driven ngay chương này; chúng ta dùng Domain Event để diễn tả một sự thật nghiệp vụ, còn reliability kỹ thuật sẽ học sâu ở Volume 5–6.</p>
+<h2 id="3-14-failure-scenarios-domain-model-t-t-gi-p-ph-t-hi-n-l-i-tr-c-khi-scale">3.14. Failure scenarios: domain model tốt giúp phát hiện lỗi trước khi scale</h2>
+<table>
+<thead>
+<tr>
+<th>Failure scenario</th>
+<th>Thiếu trong mô hình</th>
+<th>Cách phát hiện / phòng vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khách đổi địa chỉ profile sau khi đặt</td>
+<td>Address snapshot</td>
+<td>Test order address không đổi</td>
+</tr>
+<tr>
+<td>Seller B sửa offer của Seller A</td>
+<td>Owner boundary</td>
+<td>AuthZ test khác seller → 403</td>
+</tr>
+<tr>
+<td>Order cũ đổi tổng tiền khi offer đổi giá</td>
+<td>Order item price snapshot</td>
+<td>Test update offer không đổi order</td>
+</tr>
+<tr>
+<td>Hai checkout giữ cùng stock cuối</td>
+<td>Atomic reservation</td>
+<td>Concurrency integration test</td>
+</tr>
+<tr>
+<td>Client retry sau timeout tạo order thứ hai</td>
+<td>Idempotency</td>
+<td>UNIQUE(customer_id, key) + replay result</td>
+</tr>
+<tr>
+<td>Worker giải phóng một reservation hai lần</td>
+<td>Reservation lifecycle</td>
+<td>Conditional <code>ACTIVE → RELEASED</code> và update stock cùng transaction</td>
+</tr>
+<tr>
+<td>Offer thuộc seller A nhưng order item gán seller B</td>
+<td>Cross-table ownership constraint</td>
+<td>Composite FK hoặc domain verification + integration test</td>
+</tr>
+<tr>
+<td>Một seller order hủy nhưng group báo hoàn tất</td>
+<td>Group state derived incorrectly</td>
+<td>Test partial-failure aggregation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="quiz-ph-n-bi-t-l-i-v-model-v-l-i-v-infrastructure">Quiz phân biệt lỗi về model và lỗi về infrastructure</h3>
+<ol>
+<li>Một cột <code>stock</code> không phân biệt kho: lỗi mô hình.</li>
+<li>PostgreSQL hết connection: vấn đề vận hành/capacity, có thể bị khuếch đại bởi schema/query tệ.</li>
+<li>Payment callback gửi hai lần tạo hai lần hoàn tiền: model/idempotency + xử lý concurrency.</li>
+<li>Search index cập nhật chậm vài giây nhưng order check lại current price: có thể là eventual consistency được phép theo business.</li>
+</ol>
+<h2 id="3-15-engineering-lab-t-schema-ng-y-th-d-n-domain-c-th-ki-m-ch-ng">3.15. Engineering Lab — từ schema ngây thơ đến domain có thể kiểm chứng</h2>
+<h3 id="di-u-ki-n-d-u-v-o">Điều kiện đầu vào</h3>
+<ul>
+<li>Hoàng Marketplace: hai seller bán cùng một variant; mỗi seller có một kho.</li>
+<li>Giỏ có thể chứa hàng của hai seller.</li>
+<li>Checkout tạo order group + seller order + order items.</li>
+<li>Giá đã chốt phải không đổi khi offer thay đổi.</li>
+<li>Một reservation ở một kho có thể được release tối đa một lần.</li>
+</ul>
+<h3 id="lab-a-v-context-map">Lab A — Vẽ context map</h3>
+<p>Tạo sơ đồ Catalog, Offers, Inventory, Ordering, Payments, Fulfillment. Với mỗi mũi tên, ghi rõ đây là API query, command, event hay identity reference. Không vẽ tất cả thành quan hệ FK.</p>
+<h3 id="lab-b-ch-y-sql-m-u">Lab B — Chạy SQL mẫu</h3>
+<p>File <code>labs/chapter-03/schema.sql</code> chứa schema và các constraint; file <code>queries.sql</code> có câu UPDATE đặt giữ hàng, release và truy vấn snapshot. Chạy thử một lỗi <code>reserved_quantity &gt; on_hand_quantity</code> và xác nhận CHECK từ chối.</p>
+<h3 id="lab-c-concurrency-test">Lab C — Concurrency test</h3>
+<p>Seed stock: on_hand = 1, reserved = 0. Cho hai transaction đồng thời chạy UPDATE giữ 1. Kỳ vọng: chỉ một request nhận một dòng <code>RETURNING</code>, request còn lại nhận zero rows, sau commit stock không âm và không overselling.</p>
+<h3 id="lab-d-state-transition-test">Lab D — State transition test</h3>
+<p>Viết test cho <code>PENDING_PAYMENT → PAID</code> hợp lệ; <code>CANCELLED → PAID</code> bị từ chối nếu chưa có quy trình phục hồi đặc biệt. Đừng chỉ test HTTP response; test invariant trong domain.</p>
+<h3 id="lab-e-architecture-review">Lab E — Architecture review</h3>
+<p>Trả lời bằng lời, không cần code: Tại sao Order lưu <code>offer_id</code> và cả <code>unit_price_snapshot</code>? Vì sao Payment Attempt tách khỏi Order? Khi nào một <code>Address</code> là Value Object, khi nào trở thành Entity? Nếu sau này seller dùng kho fulfillment chung, constraint nào trong schema hiện tại phải thay đổi?</p>
+<h3 id="checklist-ho-n-th-nh-ch-ng">Checklist hoàn thành chương</h3>
+<ul>
+<li>[ ] Tôi phân biệt Product, Variant, Offer, Inventory và Order snapshot.</li>
+<li>[ ] Tôi biết Entity không phải lúc nào cũng bằng bảng hoặc <code>@Entity</code>.</li>
+<li>[ ] Tôi xác định được ít nhất bốn business invariants có thể viết test.</li>
+<li>[ ] Tôi biết Aggregate là consistency boundary, không phải tên khác của microservice.</li>
+<li>[ ] Tôi biết khi nào dùng ID reference, FK và event.</li>
+<li>[ ] Tôi hiểu local DB transaction không bao phủ tự động payment provider.</li>
+<li>[ ] Tôi có thể giải thích vì sao dữ liệu seller cần owner boundary.</li>
+</ul>
+<hr/>
+<h2 id="knowledge-map">Knowledge Map</h2>
+<figure class="diagram"><a href="assets/chapter-03/diagram-14.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 14" loading="lazy" src="assets/chapter-03/diagram-14.svg"/></a><figcaption><strong>Sơ đồ 14</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    D["Domain Modeling"] --&gt; L["Ubiquitous Language"]
+    D --&gt; BC["Bounded Context"]
+    D --&gt; EV["Entity vs Value Object"]
+    D --&gt; AG["Aggregate &amp; Invariant"]
+    D --&gt; DB["Database Constraints"]
+    D --&gt; TX["Transaction Boundary"]
+    D --&gt; MOD["Modular Monolith"]
+    AG --&gt; SM["State Machine"]
+    TX --&gt; DE["Domain Event / Outbox"]
+    DB --&gt; NEXT["Ch.04 Product &amp; Pricing"]
+</pre></details></figcaption></figure>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>Business rules → domain model → persistence/API</strong>, không đảo ngược và để bảng quyết định nghiệp vụ.</li>
+<li>Product, Variant, Offer, Inventory, Order Item Snapshot là những khái niệm khác nhau; trộn chúng khiến giá, kho, lịch sử đơn hàng sai.</li>
+<li>Entity cần identity; Value Object được nhận diện bằng giá trị. <code>@Entity</code> JPA chỉ là cơ chế persistence.</li>
+<li>Bounded Context là ranh giới về ngôn ngữ và quyền quyết định, không bắt buộc tách deployment.</li>
+<li>Aggregate bảo vệ invariant; không mặc định một Aggregate = một bảng hoặc một <code>@Transactional</code>.</li>
+<li>Dùng DB constraints cùng domain logic/transaction để bảo vệ tính đúng đắn dưới concurrency.</li>
+<li>Giao dịch tài chính, tồn kho và trạng thái đơn có lifecycle riêng; không nhồi vào một <code>status</code> đa nghĩa.</li>
+<li>Schema tốt phải có cả tính đúng đắn <strong>và</strong> kế hoạch phát triển khi business thay đổi.</li>
+</ol>
+<h2 id="t-i-li-u-tham-kh-o-v-gi-i-h-n-p-d-ng">Tài liệu tham khảo và giới hạn áp dụng</h2>
+<ul>
+<li><strong>[R1]</strong> Microsoft Learn, <em>Designing a microservice domain model</em>: <a href="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/microservice-domain-model">https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/microservice-domain-model</a></li>
+<li><strong>[R2]</strong> Microsoft Learn, <em>Use tactical DDD to design microservices</em>: <a href="https://learn.microsoft.com/en-au/azure/architecture/microservices/model/tactical-ddd">https://learn.microsoft.com/en-au/azure/architecture/microservices/model/tactical-ddd</a></li>
+<li><strong>[R3]</strong> PostgreSQL Documentation, <em>Constraints</em>: <a href="https://www.postgresql.org/docs/current/ddl-constraints.html">https://www.postgresql.org/docs/current/ddl-constraints.html</a></li>
+<li><strong>[R4]</strong> PostgreSQL Documentation, <em>Numeric Types</em>: <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">https://www.postgresql.org/docs/current/datatype-numeric.html</a></li>
+<li><strong>[R5]</strong> PostgreSQL Documentation, <em>Transaction Isolation</em>: <a href="https://www.postgresql.org/docs/current/transaction-iso.html">https://www.postgresql.org/docs/current/transaction-iso.html</a></li>
+<li><strong>[R6]</strong> Spring Data JPA, <em>Reference Documentation</em>: <a href="https://docs.spring.io/spring-data/jpa/reference/">https://docs.spring.io/spring-data/jpa/reference/</a></li>
+</ul>
+<blockquote>
+<p>Các sơ đồ và số liệu Hoàng Marketplace trong chương là mô hình học tập giả định. Cần thống nhất đúng nghiệp vụ trước khi áp dụng vào một dự án thật; schema và code phải được kiểm thử với phiên bản PostgreSQL/Spring đang triển khai.</p>
+</blockquote>
+<p><strong>Tiếp theo — Chapter 04: Product &amp; Pricing.</strong> Chúng ta sẽ khai thác product lifecycle, variant modeling, giá của Offer, lịch sử giá, voucher, quote, giá được chốt và các trade-off khi cache giá sản phẩm.</p>
+</article><div class="chapter-nav"><a href="chapter-02-ecommerce-business-models.html"><small>← Chương trước</small>E-commerce Business Models</a><a href="chapter-04-product-pricing.html"><small>Chương tiếp theo →</small>Product &amp; Pricing Engineering</a></div></section></div><script src="assets/reader.js"></script></body></html>

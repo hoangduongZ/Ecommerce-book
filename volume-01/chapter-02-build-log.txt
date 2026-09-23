@@ -1,0 +1,3 @@
+mermaid blocks 11
+html KB 52 md KB 33 svg diagrams 11 zip KB 47
+OUTPUT /mnt/data/Inside-Ecommerce-Volume-01-Chapter-02.zip

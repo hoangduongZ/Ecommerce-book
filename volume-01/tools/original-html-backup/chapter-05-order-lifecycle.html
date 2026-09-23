@@ -1,0 +1,764 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Inside E-commerce · Chương 05 — Order Lifecycle</title><style>
+:root{--bg:#edf3f8;--paper:#fff;--ink:#172f44;--muted:#597186;--accent:#17609e;--line:#d5e1eb;--nav:#142b3f;--code:#112638;--codeink:#e8f6ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font:16px/1.78 "Noto Sans",system-ui,sans-serif}
+nav{position:fixed;inset:0 auto 0 0;width:308px;background:var(--nav);padding:28px 18px 48px;overflow-y:auto;box-shadow:2px 0 20px #0d26361a;z-index:10}
+nav strong{color:#fff;display:block;letter-spacing:.12em;font-size:13px;margin:4px 10px}nav small{display:block;margin:8px 10px 20px;color:#b9d1df;line-height:1.7}
+nav input{width:100%;border-radius:9px;padding:10px 11px;border:1px solid #42617a;background:#1d3b53;color:white;margin-bottom:13px}nav input::placeholder{color:#a9c2d5}
+nav a{display:block;color:#c6d9e7;text-decoration:none;line-height:1.5;font-size:12px;padding:7px 10px;border-radius:7px}nav a:hover,nav a.active{background:#244b68;color:white}nav a.h2{font-weight:700;color:#ecf6fe;margin-top:4px}nav a.h3{padding-left:22px;font-size:11px}
+nav .back{margin:5px 0 16px;border-bottom:1px solid #476174;padding-bottom:12px}
+main{margin-left:308px;padding:40px 34px 90px}article{max-width:1000px;margin:auto;background:var(--paper);padding:60px 66px;border:1px solid var(--line);border-radius:16px;box-shadow:0 17px 48px #2a4b6e12}
+.eyebrow{letter-spacing:.14em;font-weight:800;color:var(--accent);font-size:12px}h1,h2,h3,h4{line-height:1.3;scroll-margin-top:24px}h1{font-size:36px;color:#163f60;margin:8px 0 14px}h2{font-size:25px;border-bottom:1px solid var(--line);padding-bottom:12px;margin:52px 0 20px}h3{font-size:19px;color:#1c5987;margin:30px 0 12px}p{margin:13px 0}blockquote{margin:22px 0;background:#eef6ff;border-left:4px solid #4189bd;padding:10px 21px;border-radius:0 10px 10px 0}blockquote p{margin:7px 0}
+a{color:#126aa3}a:hover{text-decoration:none}code{font:13px/1.5 ui-monospace,Consolas,monospace;background:#eef3f8;padding:2px 5px;border-radius:4px}pre{overflow:auto;background:var(--code);color:var(--codeink);padding:21px;border-radius:11px;line-height:1.58;font-size:13px}pre code{padding:0;background:none;color:inherit;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:20px 0}table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}th{background:#e9f3fa;text-align:left}th,td{border:1px solid #d4e2ea;padding:10px 13px;vertical-align:top}tr:nth-child(even) td{background:#f7fafc}hr{border:0;border-top:1px solid var(--line);margin:38px 0}
+.diagram{margin:22px 0;padding:15px;background:#f6faff;border:1px solid #d9e5f0;border-radius:11px;text-align:center;overflow:hidden}.diagram img{max-width:100%;height:auto;min-width: min(280px,100%)}.diagram figcaption{text-align:left;font-size:12px;color:#42607a;padding:11px 5px 0}.diagram details{display:inline-block}.diagram summary{cursor:pointer;color:#13659e;font-weight:700}.diagram pre{text-align:left;max-height:290px;font-size:11px;white-space:pre-wrap}
+.toolbar{position:fixed;right:24px;top:15px;z-index:8;display:flex;gap:8px}.toolbar button,.mobile-toggle{background:#17609e;color:white;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}.mobile-toggle{display:none;position:fixed;bottom:18px;right:18px;z-index:11}
+#progress{position:fixed;left:0;top:0;height:4px;background:#22a1bc;width:0;z-index:12}footer{color:#728698;text-align:center;font-size:13px;margin-top:30px}
+body.dark{--bg:#071522;--paper:#10263a;--ink:#dbe9f4;--muted:#9bb5c8;--accent:#8dcaff;--line:#30485a;--code:#06131e;--codeink:#e9f5ff}
+body.dark h1,body.dark h3{color:#a9d9fa}body.dark h2{color:#dbe9f4}body.dark th{background:#203e55}body.dark tr:nth-child(even) td{background:#162f43}body.dark blockquote{background:#1a3a52}body.dark .diagram{background:#f2f7fd}body.dark code{background:#28445b;color:#e9f5ff}body.dark pre code{background:none}
+@media(max-width:1000px){nav{transform:translateX(-103%);transition:transform .25s}body.nav-open nav{transform:translateX(0)}main{margin:0;padding:20px 10px 65px}article{padding:40px 26px}.mobile-toggle{display:block}}
+@media(max-width:600px){article{padding:27px 17px}h1{font-size:28px}h2{font-size:22px}body{font-size:15px}.toolbar{right:12px;top:9px}.toolbar button{font-size:11px}}
+@media print{nav,.toolbar,.mobile-toggle,#progress{display:none}main{padding:0;margin:0}article{max-width:none;border:0;box-shadow:none;padding:0}h2,h3{break-after:avoid}.diagram{break-inside:avoid}body{background:white;color:black}a{color:inherit}}
+</style></head><body>
+<div id="progress"></div><nav><strong>INSIDE E-COMMERCE</strong><small>Volume 1 — Understanding E-commerce<br>Chapter 05 · Order Lifecycle</small>
+<a class="back" href="chapter-04-product-pricing.html">← Chương 04: Product & Pricing</a>
+<input id="search" placeholder="Tìm tiêu đề trong chương…" aria-label="Tìm trong mục lục"><a class="h2" href="#volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</a>
+<a class="h3" href="#chapter-05-order-lifecycle-t-n-t-mua-ngay-d-n-ho-n-t-t-h-y-v-ho-n-ti-n">Chapter 05 — Order Lifecycle: Từ nút Mua ngay đến hoàn tất, hủy và hoàn tiền</a>
+<a class="h2" href="#sau-ch-ng-n-y-b-n-s-c-kh-n-ng">Sau chương này, bạn sẽ có khả năng</a>
+<a class="h2" href="#5-1-bad-case-bi-n-m-i-th-th-nh-m-t-orders-status">5.1. Bad case: biến mọi thứ thành một orders.status</a>
+<a class="h3" href="#ba-nh-m-l-n-g-y-l-i-l-n">Ba nhầm lẫn gây lỗi lớn</a>
+<a class="h2" href="#5-2-t-ch-s-u-lifecycle-li-n-quan-nh-ng-kh-ng-d-ng-nh-t">5.2. Tách sáu lifecycle liên quan nhưng không đồng nhất</a>
+<a class="h2" href="#5-3-order-lifecycle-l-m-t-state-machine-c-di-u-ki-n">5.3. Order lifecycle là một State Machine có điều kiện</a>
+<a class="h3" href="#transition-table-contract-th-c-s-c-a-backend">Transition table: contract thực sự của backend</a>
+<a class="h3" href="#invariant-c-n-c-d-nh-tr-c-khi-vi-t-code">Invariant cần cố định trước khi viết code</a>
+<a class="h2" href="#5-4-product-price-quote-order-snapshot-gi-b-ng-ch-ng-giao-d-ch">5.4. Product → Price Quote → Order Snapshot: giữ bằng chứng giao dịch</a>
+<a class="h2" href="#5-5-transaction-boundary-c-i-g-th-c-hi-n-nguy-n-t-d-c-c-i-g-kh-ng">5.5. Transaction Boundary: cái gì thực hiện nguyên tử được, cái gì không?</a>
+<a class="h2" href="#5-6-business-command-kh-ng-d-c-l-patch-orders-id-status">5.6. Business command không được là PATCH /orders/{id}/status</a>
+<a class="h2" href="#5-7-race-condition-1-cancel-order-v-payment-succeeded-c-ng-d-n">5.7. Race Condition 1: Cancel Order và Payment Succeeded cùng đến</a>
+<a class="h2" href="#5-8-race-condition-2-reservation-expiry-vs-payment-confirmation">5.8. Race Condition 2: Reservation Expiry vs Payment Confirmation</a>
+<a class="h2" href="#5-9-cancellation-l-m-t-workflow-kh-ng-ph-i-m-t-l-nh-set-status">5.9. Cancellation là một workflow, không phải một lệnh set status</a>
+<a class="h3" href="#policy-matrix-l-d-li-u-kinh-doanh">Policy matrix là dữ liệu kinh doanh</a>
+<a class="h2" href="#5-10-return-cancellation-refund-order-state">5.10. Return ≠ Cancellation; Refund ≠ Order State</a>
+<a class="h2" href="#5-11-idempotency-b-n-l-p-kh-ng-ch-n-t-mua">5.11. Idempotency ở bốn lớp, không chỉ ở nút Mua</a>
+<a class="h2" href="#5-12-crash-gi-a-commit-v-publish-transactional-outbox">5.12. Crash giữa Commit và Publish: Transactional Outbox</a>
+<a class="h2" href="#5-13-payment-timeout-unknown-l-th-ng-tin-kh-ng-ph-i-s-th-t-b-i">5.13. Payment timeout: UNKNOWN là thông tin, không phải sự thất bại</a>
+<a class="h2" href="#5-14-worker-crash-queue-backlog-v-recovery-design">5.14. Worker crash, queue backlog và recovery design</a>
+<a class="h2" href="#5-15-database-schema-thi-t-k-d-d-gi-i-th-ch-m-t-d-n-h-ng">5.15. Database schema: thiết kế đủ để giải thích một đơn hàng</a>
+<a class="h3" href="#c-c-m-u-constraint-quan-tr-ng">Các mẫu constraint quan trọng</a>
+<a class="h2" href="#5-16-spring-boot-design-command-handler-state-guards-local-transaction">5.16. Spring Boot design: command handler + state guards + local transaction</a>
+<a class="h3" href="#spring-event-kh-ng-m-c-d-nh-l-reliable-message-broker">Spring event không mặc định là reliable message broker</a>
+<a class="h2" href="#5-17-observability-do-m-t-lifecycle-ch-kh-ng-ch-do-http-200">5.17. Observability: đo một lifecycle chứ không chỉ đo HTTP 200</a>
+<a class="h3" href="#reconciliation-jobs">Reconciliation jobs</a>
+<a class="h2" href="#5-18-bottleneck-shifting-trong-order-lifecycle">5.18. Bottleneck Shifting trong Order Lifecycle</a>
+<a class="h2" href="#5-19-engineering-lab-di-n-t-p-m-t-v-ng-d-i-d-n">5.19. Engineering Lab — diễn tập một vòng đời đơn</a>
+<a class="h3" href="#thi-t-l-p">Thiết lập</a>
+<a class="h3" href="#b-i-to-n-b-t-bu-c">Bài toán bắt buộc</a>
+<a class="h3" href="#d-p-n-t-duy-test-kh-ng-th-thi-u">Đáp án tư duy: test không thể thiếu</a>
+<a class="h2" href="#5-20-chapter-review-t-duy-tr-c-khi-ch-n-c-ng-ngh">5.20. Chapter Review — tư duy trước khi chọn công nghệ</a>
+<a class="h3" href="#knowledge-map">Knowledge Map</a>
+<a class="h3" href="#key-takeaways">Key Takeaways</a>
+<a class="h2" href="#t-i-li-u-tham-kh-o-k-thu-t">Tài liệu tham khảo kỹ thuật</a></nav>
+<div class="toolbar"><button id="theme" type="button">☾ Tối</button><button onclick="window.print()" type="button">⎙ In / Save PDF</button></div><button id="mobile" class="mobile-toggle">☰ Mục lục</button>
+<main><article><div class="eyebrow">BACKEND ENGINEERING · SYSTEM DESIGN · ORDER LIFECYCLE</div><h1 id="inside-e-commerce">INSIDE E-COMMERCE</h1>
+<h2 id="volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</h2>
+<h3 id="chapter-05-order-lifecycle-t-n-t-mua-ngay-d-n-ho-n-t-t-h-y-v-ho-n-ti-n">Chapter 05 — Order Lifecycle: Từ nút Mua ngay đến hoàn tất, hủy và hoàn tiền</h3>
+<blockquote>
+<p><strong>Câu hỏi dẫn đường:</strong> Một khách mua chiếc điện thoại cuối cùng. Hệ thống giữ hàng và tạo đơn, cổng thanh toán trả timeout, khách nhấn hủy, nhưng webhook báo trả tiền thành công đến sau đó. Liệu một cột <code>orders.status</code> có mô tả và giải quyết chính xác mọi thứ?</p>
+</blockquote>
+<blockquote>
+<p><strong>Phạm vi:</strong> Tiếp tục cửa hàng giả định <strong>Hoàng Phone → Hoàng Marketplace</strong> của chương 01–04. Trạng thái, SLA giữ hàng và chính sách hoàn tiền dưới đây là ví dụ thiết kế, không phải quy tắc bất biến áp dụng cho mọi nhà bán hàng hay nhà cung cấp thanh toán. <code>PaymentIntent</code> của một PSP không đồng nghĩa với trạng thái đơn hàng nội bộ của doanh nghiệp.</p>
+</blockquote>
+<h2 id="sau-ch-ng-n-y-b-n-s-c-kh-n-ng">Sau chương này, bạn sẽ có khả năng</h2>
+<ul>
+<li>Vẽ state machine và bảng chuyển trạng thái <strong>có guard/action rõ ràng</strong>, thay cho các lệnh <code>setStatus(...)</code> tự do.</li>
+<li>Phân biệt <strong>Order, Payment, Reservation, Fulfillment, Shipment và Refund</strong> theo vòng đời độc lập.</li>
+<li>Thiết kế <strong>atomic checkout</strong> với order snapshot, inventory reservation và outbox trong một database transaction khi chúng cùng datastore.</li>
+<li>Kiểm soát hai tác vụ cạnh tranh: cancel vs payment callback; cancel vs shipping; expiry vs payment success.</li>
+<li>Xử lý timeout không rõ kết quả, duplicate webhook, out-of-order event, retry và worker crash.</li>
+<li>Phân biệt hủy trước giao với return/refund sau giao; xử lý một phần khi đơn có nhiều dòng hoặc nhiều seller.</li>
+<li>Tìm bottleneck ở hot order row, worker/queue backlog, PSP quota và reconciliation.</li>
+<li>Có SQL Lab để tự tái hiện các lỗi và kiểm tra invariant cốt lõi.</li>
+</ul>
+<hr/>
+<h2 id="5-1-bad-case-bi-n-m-i-th-th-nh-m-t-orders-status">5.1. Bad case: biến mọi thứ thành một <code>orders.status</code></h2>
+<p>Phiên bản demo đầu tiên thường viết như sau:</p>
+<pre><code class="language-sql">CREATE TABLE orders (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    total_amount NUMERIC(18, 2) NOT NULL
+);
+</code></pre>
+<pre><code class="language-java">order.setStatus("SUCCESS");
+repository.save(order);
+</code></pre>
+<p>Nhưng <code>SUCCESS</code> nghĩa là gì? Đã tạo đơn, đã trừ tồn, đã thu tiền, đã giao hàng hay đã hết hạn đổi trả? Nếu webhook thanh toán gửi lại <code>SUCCESS</code> sau khi nhân viên vừa cập nhật <code>CANCELLED</code>, thằng nào là sự thật? Nếu người mua trả lại một trong ba món, trạng thái đơn nên là <code>SUCCESS</code>, <code>REFUNDED</code> hay <code>PARTIALLY_RETURNED</code>?</p>
+<p>Đây không phải lỗi riêng của JPA. <strong>Lỗi nằm ở domain modeling: ép nhiều sự kiện và vòng đời độc lập thành một biến trạng thái nghèo ngữ nghĩa.</strong></p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-01.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 01" loading="lazy" src="assets/chapter-05/diagram-01.svg"/></a><figcaption><strong>Sơ đồ 01</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["orders.status = SUCCESS"] --&gt; B["Payment đã thành công?"]
+    A --&gt; C["Kho đã đóng gói?"]
+    A --&gt; D["Đã giao toàn bộ?"]
+    A --&gt; E["Khách có đang hoàn một phần?"]
+    B --&gt; F["SUCCESS không đủ ngữ nghĩa"]
+    C --&gt; F
+    D --&gt; F
+    E --&gt; F
+</pre></details></figcaption></figure>
+<p><strong>Feynman analogy:</strong> Phiếu gọi món ở quán không thể chỉ ghi “XONG”, bởi bếp nấu xong, thu ngân đã thu tiền và người giao hàng đã mang đồ đi là ba sự việc khác nhau. E-commerce cũng vậy.</p>
+<h3 id="ba-nh-m-l-n-g-y-l-i-l-n">Ba nhầm lẫn gây lỗi lớn</h3>
+<ol>
+<li><strong>State ≠ Event:</strong> <code>PAID</code> là trạng thái; <code>PaymentConfirmed</code> là điều vừa xảy ra. Một event có thể dẫn đến thay đổi nhiều projection/trạng thái.</li>
+<li><strong>Command ≠ Fact:</strong> <code>CancelOrder</code> là yêu cầu; <code>OrderCancelled</code> chỉ được ghi sau khi cancel thực sự thành công theo rule.</li>
+<li><strong>HTTP response ≠ Business outcome:</strong> Timeout không chứng minh giao dịch thanh toán hay tạo đơn đã thất bại.</li>
+</ol>
+<h2 id="5-2-t-ch-s-u-lifecycle-li-n-quan-nh-ng-kh-ng-d-ng-nh-t">5.2. Tách sáu lifecycle liên quan nhưng không đồng nhất</h2>
+<p>Một hệ thống đủ thực dụng không nhất thiết tạo sáu microservice, nhưng nên nhận diện sáu domain entity/process khác nhau:</p>
+<table>
+<thead>
+<tr>
+<th>Đối tượng</th>
+<th>Câu hỏi sở hữu</th>
+<th>Ví dụ trạng thái</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Order</td>
+<td>Khách và cửa hàng đã cam kết mua bán tới bước nào?</td>
+<td><code>PENDING_PAYMENT</code>, <code>CONFIRMED</code>, <code>CANCELLED</code></td>
+</tr>
+<tr>
+<td>Payment Attempt / Payment</td>
+<td>Có khoản thanh toán được khởi tạo, đang xử lý, thành công hay thất bại?</td>
+<td><code>PENDING</code>, <code>SUCCEEDED</code>, <code>FAILED</code>, <code>UNKNOWN</code></td>
+</tr>
+<tr>
+<td>Inventory Reservation</td>
+<td>Bao nhiêu SKU đã giữ cho đơn, tới lúc nào?</td>
+<td><code>ACTIVE</code>, <code>CONSUMED</code>, <code>RELEASED</code>, <code>EXPIRED</code></td>
+</tr>
+<tr>
+<td>Fulfillment</td>
+<td>Kho đã phân bổ, nhặt, đóng gói tới đâu?</td>
+<td><code>NEW</code>, <code>PICKING</code>, <code>PACKED</code>, <code>HANDOVER</code></td>
+</tr>
+<tr>
+<td>Shipment</td>
+<td>Đơn vị vận chuyển đã nhận và giao ra sao?</td>
+<td><code>CREATED</code>, <code>IN_TRANSIT</code>, <code>DELIVERED</code>, <code>LOST</code></td>
+</tr>
+<tr>
+<td>Return / Refund</td>
+<td>Hàng có được nhận trả và tiền có hoàn hay không?</td>
+<td><code>REQUESTED</code>, <code>APPROVED</code>, <code>SUCCEEDED</code>, <code>REJECTED</code></td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-05/diagram-02.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 02" loading="lazy" src="assets/chapter-05/diagram-02.svg"/></a><figcaption><strong>Sơ đồ 02</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    O["Order"] --&gt; P["Payment Attempts"]
+    O --&gt; R["Stock Reservations"]
+    O --&gt; F["Fulfillments"]
+    F --&gt; S["Shipments"]
+    O --&gt; RT["Returns"]
+    RT --&gt; RF["Refunds"]
+    P --&gt; RF
+</pre></details></figcaption></figure>
+<p>Mối liên hệ là business reference, không đồng nghĩa bắt buộc một bảng cho mỗi ô. Trong Marketplace một <strong>checkout group</strong> còn có thể tách thành nhiều <strong>seller order</strong> và nhiều shipment. Đừng để UI chỉ hiển thị “Đơn đã giao” che mất chi tiết các gói hàng khác nhau.</p>
+<h2 id="5-3-order-lifecycle-l-m-t-state-machine-c-di-u-ki-n">5.3. Order lifecycle là một State Machine có điều kiện</h2>
+<p>Ta chọn lifecycle tối giản cho <strong>một đơn prepaid, một seller</strong>, payment thu tiền sau khi reserve thành công:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-03.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 03" loading="lazy" src="assets/chapter-05/diagram-03.svg"/></a><figcaption><strong>Sơ đồ 03</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>stateDiagram-v2
+    [*] --&gt; PENDING_PAYMENT
+    PENDING_PAYMENT --&gt; CONFIRMED: payment verified
+    PENDING_PAYMENT --&gt; CANCELLING: cancel or expiry
+    CANCELLING --&gt; CANCELLED: payment resolved and stock released
+    CANCELLING --&gt; CONFIRMED: cancel not possible, payment success
+    CONFIRMED --&gt; PROCESSING: fulfillment starts
+    PROCESSING --&gt; SHIPPED: carrier handover
+    SHIPPED --&gt; DELIVERED: proof of delivery
+    DELIVERED --&gt; COMPLETED: business closure
+    CONFIRMED --&gt; CANCELLING: cancel allowed
+</pre></details></figcaption></figure>
+<p>Đây là <strong>mô hình minh họa</strong>, không phải tập trạng thái chuẩn quốc tế. <code>COMPLETED</code> là mốc business closure do doanh nghiệp quy định; không đồng nghĩa hết hạn bảo hành hay cấm refund. <code>CANCELLING</code> là trạng thái trung gian cần thiết khi cancellation phụ thuộc vào gateway/kho/shipper không thể xử lý tức thì.</p>
+<h3 id="transition-table-contract-th-c-s-c-a-backend">Transition table: contract thực sự của backend</h3>
+<table>
+<thead>
+<tr>
+<th>Từ</th>
+<th>Command/Event</th>
+<th>Điều kiện (guard)</th>
+<th>Sang</th>
+<th>Side effect nghiệp vụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PENDING_PAYMENT</code></td>
+<td><code>PaymentVerified</code></td>
+<td>Đúng attempt, đúng amount/currency, chưa cancel thực sự</td>
+<td><code>CONFIRMED</code></td>
+<td>Đánh dấu giữ hàng đã gắn với đơn; yêu cầu fulfillment</td>
+</tr>
+<tr>
+<td><code>PENDING_PAYMENT</code></td>
+<td><code>CancelRequested</code></td>
+<td>Trong cửa sổ hủy</td>
+<td><code>CANCELLING</code></td>
+<td>Chặn tạo payment attempt mới; yêu cầu xác minh/cancel PSP</td>
+</tr>
+<tr>
+<td><code>CANCELLING</code></td>
+<td><code>PaymentSettledAsUnpaid</code></td>
+<td>Không còn khoản có thể hoàn tất bất ngờ</td>
+<td><code>CANCELLED</code></td>
+<td>Release reservation đúng một lần</td>
+</tr>
+<tr>
+<td><code>CANCELLING</code></td>
+<td><code>PaymentSucceededLate</code></td>
+<td>Thanh toán thành công dù đã yêu cầu hủy</td>
+<td>Theo chính sách: <code>CONFIRMED</code> hoặc tiếp tục <code>CANCELLING</code> để hoàn tiền</td>
+<td>Không release bừa; quyết định hoàn tiền/tiếp tục giao</td>
+</tr>
+<tr>
+<td><code>CONFIRMED</code></td>
+<td><code>StartFulfillment</code></td>
+<td>Chưa có active cancel, đủ hàng</td>
+<td><code>PROCESSING</code></td>
+<td>Tạo fulfillment</td>
+</tr>
+<tr>
+<td><code>PROCESSING</code></td>
+<td><code>CarrierAccepted</code></td>
+<td>Handover hợp lệ</td>
+<td><code>SHIPPED</code></td>
+<td>Ghi tracking</td>
+</tr>
+<tr>
+<td><code>SHIPPED</code></td>
+<td><code>ProofOfDelivery</code></td>
+<td>Gói hàng tương ứng xác nhận giao</td>
+<td><code>DELIVERED</code></td>
+<td>Ghi POD; tiếp tục hậu mãi</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Quan trọng:</strong> Điều kiện <code>PaymentSettledAsUnpaid</code> phải dựa trên kết quả đủ tin cậy từ PSP/reconciliation, không phải suy ra từ việc request HTTP bị timeout.</p>
+<h3 id="invariant-c-n-c-d-nh-tr-c-khi-vi-t-code">Invariant cần cố định trước khi viết code</h3>
+<ul>
+<li><code>CONFIRMED</code> trong prepaid flow cần payment evidence hợp lệ, hoặc một ngoại lệ thanh toán khác được model hóa rõ (COD, pay-later).</li>
+<li>Một reservation chỉ có <strong>một kết cục terminal</strong>: <code>CONSUMED</code>, <code>RELEASED</code> hoặc <code>EXPIRED</code> (nếu expiry là một biến thể release; không đồng thời).</li>
+<li>Số lượng <code>reserved_qty</code> trên kho không âm và không vượt <code>on_hand_qty</code> theo quy tắc kho đơn giản của lab.</li>
+<li>Một lệnh gửi lại cùng idempotency key với cùng nội dung trả cùng business result; cùng key mà nội dung khác phải từ chối.</li>
+<li>Không chuyển từ <code>CANCELLED</code> về <code>CONFIRMED</code> chỉ vì nhận event cũ. Late money phải thành dispute/refund/reconciliation case.</li>
+<li>Status snapshot có thể mất đồng bộ ngắn với projection nhưng event/audit log không được làm mất dấu các chuyển trạng thái đã commit.</li>
+</ul>
+<h2 id="5-4-product-price-quote-order-snapshot-gi-b-ng-ch-ng-giao-d-ch">5.4. Product → Price Quote → Order Snapshot: giữ bằng chứng giao dịch</h2>
+<p>Chương 04 đã tách <code>price</code> hiện tại khỏi <code>price snapshot</code>. Chapter 05 nối logic đó với lịch sử đơn:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-04.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 04" loading="lazy" src="assets/chapter-05/diagram-04.svg"/></a><figcaption><strong>Sơ đồ 04</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    C["Cart may be stale"] --&gt; Q["Authoritative checkout quote"]
+    Q --&gt; V["Validate SKU, buyer, promo, stock"]
+    V --&gt; T["Local DB transaction"]
+    T --&gt; O["Create order + order lines snapshot"]
+    T --&gt; R["Reserve stock"]
+    T --&gt; E["Insert outbox event"]
+    O --&gt; P["Payment attempt"]
+</pre></details></figcaption></figure>
+<p>Một dòng đơn hàng tối thiểu nên giữ: <code>sku_id</code>, <code>seller_id</code>, tên/biến thể để hiển thị lịch sử, <code>qty</code>, <code>unit_price</code>, discount allocation, tax/shipping allocation nếu domain yêu cầu, currency và policy version. Không query giá catalog hiện tại để tính lại đơn cũ.</p>
+<p><strong>Vấn đề khó:</strong> quote hết hạn giữa lúc khách bấm confirm. Contract cần nói rõ giá được cố định tại thời điểm nào: khi tạo quote, khi server chấp nhận checkout, hay chỉ sau khi thanh toán? Không có lựa chọn duy nhất cho mọi cửa hàng. Điều cần có là rule minh bạch, server enforce và snapshot có thể audit.</p>
+<h2 id="5-5-transaction-boundary-c-i-g-th-c-hi-n-nguy-n-t-d-c-c-i-g-kh-ng">5.5. Transaction Boundary: cái gì thực hiện nguyên tử được, cái gì không?</h2>
+<p>Nếu order và inventory nằm cùng PostgreSQL, checkout có thể thực hiện nguyên tử trong <strong>transaction ngắn</strong>:</p>
+<pre><code class="language-sql">BEGIN;
+-- 1. Idempotency row/unique key, validate price version.
+-- 2. Conditionally reserve inventory.
+-- 3. Insert orders and order_items snapshots.
+-- 4. Insert stock_reservations.
+-- 5. Insert outbox event OrderPlaced.
+COMMIT;
+</code></pre>
+<p>Nếu bước nào thất bại, rollback toàn bộ. Không để backend tạo order mà không reserve hàng, hoặc reserve hàng nhưng không tạo order do lỗi ở giữa.</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-05.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 05" loading="lazy" src="assets/chapter-05/diagram-05.svg"/></a><figcaption><strong>Sơ đồ 05</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant API as Checkout API
+    participant DB as PostgreSQL
+    participant PSP as Payment Provider
+    API-&gt;&gt;DB: BEGIN
+    API-&gt;&gt;DB: Reserve + Order + Outbox
+    DB--&gt;&gt;API: COMMIT
+    API-&gt;&gt;PSP: Create payment attempt
+    PSP--&gt;&gt;API: payment state or timeout
+    API-&gt;&gt;DB: New short transaction to record outcome
+</pre></details></figcaption></figure>
+<p><strong>Không gọi PSP bên trong transaction đang giữ row lock kho/đơn.</strong> PSP có thể timeout vài giây hoặc cần người dùng xác thực; transaction bị giữ sẽ tăng lock wait, connection occupancy và deadlock risk. PostgreSQL mô tả row lock tồn tại tới cuối transaction và cảnh báo tránh giữ transaction mở dài. Tham khảo PostgreSQL Explicit Locking ở cuối chương.</p>
+<p>Khi Order và Inventory chuyển thành database riêng, local <code>@Transactional</code> trên Order Service không thể rollback kho tại service khác; cần workflow phân tán và compensation, được đi sâu ở Volume 6.</p>
+<h2 id="5-6-business-command-kh-ng-d-c-l-patch-orders-id-status">5.6. Business command không được là <code>PATCH /orders/{id}/status</code></h2>
+<p>API ngây thơ:</p>
+<pre><code class="language-http">PATCH /orders/123
+{"status":"DELIVERED"}
+</code></pre>
+<p>Nếu khách hoặc client có thể tự chọn trạng thái, bạn đã trao quyền bỏ qua business guards. API nên mô tả <strong>ý định nghiệp vụ</strong>:</p>
+<pre><code class="language-http">POST /orders/123/cancellations
+Idempotency-Key: user-101-cancel-order-123
+
+{"reason":"CHANGED_MIND"}
+</code></pre>
+<pre><code class="language-http">POST /fulfillments/ful-123/handover
+Idempotency-Key: carrier-handover-xyz
+
+{"trackingNumber":"TRK-001"}
+</code></pre>
+<pre><code class="language-http">POST /webhooks/payment
+Stripe-Signature: ...
+
+{...provider payload...}
+</code></pre>
+<p>Chữ ký/cơ chế xác minh webhook là trách nhiệm riêng; không dùng request body tự khai <code>paymentStatus=PAID</code> để xác nhận tiền. Quyền actor phải được gắn vào command: customer được <em>yêu cầu hủy</em>, warehouse được <em>xác nhận đóng gói</em>, carrier/đầu tích hợp đáng tin được <em>cập nhật vận chuyển</em>.</p>
+<h2 id="5-7-race-condition-1-cancel-order-v-payment-succeeded-c-ng-d-n">5.7. Race Condition 1: Cancel Order và Payment Succeeded cùng đến</h2>
+<p>Tình huống hay xuất hiện:</p>
+<ul>
+<li>T0: Order <code>PENDING_PAYMENT</code>; PSP đang xử lý.</li>
+<li>T1: Khách nhấn Cancel và request A đọc trạng thái.</li>
+<li>T2: Webhook <code>payment.succeeded</code> và request B cũng đọc trạng thái.</li>
+<li>T3: A set <code>CANCELLED</code>; B set <code>CONFIRMED</code>; transaction nào commit cuối cùng thắng nếu không có bảo vệ.</li>
+</ul>
+<figure class="diagram"><a href="assets/chapter-05/diagram-06.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 06" loading="lazy" src="assets/chapter-05/diagram-06.svg"/></a><figcaption><strong>Sơ đồ 06</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant C as Customer
+    participant O as Order DB
+    participant W as Payment Webhook
+    C-&gt;&gt;O: Read PENDING_PAYMENT
+    W-&gt;&gt;O: Read PENDING_PAYMENT
+    C-&gt;&gt;O: Write CANCELLED
+    W-&gt;&gt;O: Write CONFIRMED
+    O--&gt;&gt;C: Lost update or invalid business state
+</pre></details></figcaption></figure>
+<p>Cách bảo vệ tầng DB: <strong>compare-and-set (CAS)</strong> theo <code>status</code>, hoặc optimistic locking bằng <code>version</code>, kết hợp guard nghiệp vụ. Ví dụ:</p>
+<pre><code class="language-sql">UPDATE orders
+SET status = 'CANCELLING', version = version + 1
+WHERE id = :order_id
+  AND status = 'PENDING_PAYMENT'
+  AND version = :expected_version;
+</code></pre>
+<p><code>rows_updated = 0</code> có nghĩa trạng thái đã thay đổi hoặc version không còn phù hợp: <strong>reload và quyết định lại</strong>; không phải cứ retry cùng cập nhật cho đến khi thắng. Với payment success đến sau khi order chuyển <code>CANCELLING</code>, handler phải xử lý nhánh late-payment theo policy; không ghi <code>CONFIRMED</code> bằng mọi giá.</p>
+<p><strong>Chú ý ranh giới:</strong> CAS trên order row ngăn lost update nhưng <em>không</em> tự đảm bảo side effect từ hệ thống bên ngoài chạy đúng một lần. Idempotency và reconciliation vẫn cần.</p>
+<h2 id="5-8-race-condition-2-reservation-expiry-vs-payment-confirmation">5.8. Race Condition 2: Reservation Expiry vs Payment Confirmation</h2>
+<p>Stock reservation có thể có <code>expires_at</code>. Worker tìm các reservation đã hết hạn để giải phóng. Cùng lúc webhook báo payment success.</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-07.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 07" loading="lazy" src="assets/chapter-05/diagram-07.svg"/></a><figcaption><strong>Sơ đồ 07</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant EX as Expiry Worker
+    participant DB as PostgreSQL
+    participant PAY as Payment Webhook
+    EX-&gt;&gt;DB: Lock ACTIVE expired reservation
+    PAY-&gt;&gt;DB: Try lock same reservation/order
+    EX-&gt;&gt;DB: ACTIVE -&gt; RELEASED, decrement reserved
+    DB--&gt;&gt;PAY: Re-read RELEASED
+    PAY-&gt;&gt;DB: Record late payment, start refund/recovery
+</pre></details></figcaption></figure>
+<p><strong>Không được diễn giải expiry timestamp là quyền trừ kho tự do.</strong> Cần điều kiện trạng thái + transaction + xác minh thanh toán đang xử lý và quy tắc xử lý payment trễ.</p>
+<p>Một số hệ thống đặt expiry worker vào trạng thái <code>EXPIRING</code>/<code>CANCELLING</code> trước, sau đó đối soát PSP, rồi mới commit trạng thái release terminal. Việc chọn strategy phụ thuộc payment method và SLA. Với PSP có thể gửi success muộn, tự động release hàng chỉ vì deadline mà không xử lý late-success sẽ tạo ra paid-without-stock.</p>
+<h2 id="5-9-cancellation-l-m-t-workflow-kh-ng-ph-i-m-t-l-nh-set-status">5.9. Cancellation là một workflow, không phải một lệnh set status</h2>
+<p>Phân biệt:</p>
+<table>
+<thead>
+<tr>
+<th>Mốc</th>
+<th>Nghiệp vụ</th>
+<th>Cách xử lý có thể cần</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chưa thanh toán, chưa fulfillment</td>
+<td>Request hủy</td>
+<td>Resolve pending PSP, release reservation</td>
+</tr>
+<tr>
+<td>Đã thu tiền, chưa đóng gói</td>
+<td>Request hủy</td>
+<td>Dừng fulfillment, refund theo rule</td>
+</tr>
+<tr>
+<td>Đang đóng gói</td>
+<td>Request hủy</td>
+<td>Kho có dừng được không? Nếu không thì đợi handover/return workflow</td>
+</tr>
+<tr>
+<td>Đã giao cho carrier</td>
+<td>Request hủy</td>
+<td>Có thể cần intercept hoặc return-to-origin, không phải đơn thuần rollback</td>
+</tr>
+<tr>
+<td>Đã giao thành công</td>
+<td>Request trả hàng</td>
+<td>Return Authorization + Refund process</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-05/diagram-08.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 08" loading="lazy" src="assets/chapter-05/diagram-08.svg"/></a><figcaption><strong>Sơ đồ 08</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Cancel requested"] --&gt; B["Check order/payment/fulfillment"]
+    B --&gt; C{"Can stop handover?"}
+    C --&gt;|Yes| D["Stop fulfillment"]
+    C --&gt;|No| E["Return/intercept workflow"]
+    D --&gt; F{"Money captured?"}
+    F --&gt;|No| G["Resolve or void payment"]
+    F --&gt;|Yes| H["Request refund"]
+    G --&gt; I["Release reservation once"]
+    H --&gt; J["Wait verified refund outcome"]
+    J --&gt; I
+</pre></details></figcaption></figure>
+<p>Trong các sản phẩm có capture trước fulfilment, <code>CANCELLED</code> có thể nghĩa là <strong>không giao hàng nữa</strong>, còn refund đang <code>PENDING</code>/<code>FAILED</code> phải thể hiện độc lập. Không được quảng bá “đã hoàn tiền” chỉ vì đã gửi API refund mà chưa xác nhận kết quả.</p>
+<h3 id="policy-matrix-l-d-li-u-kinh-doanh">Policy matrix là dữ liệu kinh doanh</h3>
+<p>Ví dụ cấu hình (chỉ minh họa):</p>
+<pre><code class="language-yaml">cancellationPolicy:
+  beforePacked: allow
+  afterHandover: requireReturnFlow
+  paymentUnknown: waitForVerification
+  customerRefundOnSuccessfulCancel: required
+</code></pre>
+<p>Khi policy thay đổi, nên lưu policy version hoặc đủ context để giải thích tại sao một đơn được hủy tại thời điểm đó.</p>
+<h2 id="5-10-return-cancellation-refund-order-state">5.10. Return ≠ Cancellation; Refund ≠ Order State</h2>
+<p>Đơn giao hai điện thoại, khách chỉ trả một chiếc. Hệ thống cần line-level quantity, return authorization và refund amount độc lập:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-09.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 09" loading="lazy" src="assets/chapter-05/diagram-09.svg"/></a><figcaption><strong>Sơ đồ 09</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    O["Order: 2 phones delivered"] --&gt; R["Return request: 1 phone"]
+    R --&gt; Q["Inspect returned unit"]
+    Q --&gt; A["Approve qty 1"]
+    A --&gt; F["Refund partial amount"]
+    O --&gt; K["Remaining 1 phone kept"]
+</pre></details></figcaption></figure>
+<p>Invariant ở cấp dòng: <code>returned_qty + non_returnable_or_other_allocations &lt;= fulfilled_qty</code> theo chính sách; refunded monetary sum không vượt phần có thể hoàn của giao dịch sau khi trừ lần hoàn trước. Shipping, vouchers và phí hoàn có thể phải phân bổ theo rule, không suy trực tiếp <code>unit_price × qty</code>.</p>
+<p>Trong Marketplace, return/refund cần liên hệ <code>seller_order_id</code> và <code>shipment_id</code> đúng. Một marketplace checkout có thể có một payment tổng nhưng nhiều seller settlement; refund chỉ một seller có thể cần điều chỉnh commission/payable liên quan.</p>
+<h2 id="5-11-idempotency-b-n-l-p-kh-ng-ch-n-t-mua">5.11. Idempotency ở bốn lớp, không chỉ ở nút Mua</h2>
+<p>Một retry có thể đến từ user, load balancer, Worker, broker hoặc PSP. Bốn lớp quan trọng:</p>
+<table>
+<thead>
+<tr>
+<th>Lớp</th>
+<th>Duplicate risk</th>
+<th>Dedupe key/điều kiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Checkout request</td>
+<td>Tạo hai order</td>
+<td><code>(user_id, idempotency_key)</code> + request fingerprint</td>
+</tr>
+<tr>
+<td>Message consumer</td>
+<td>Chạy business action hai lần</td>
+<td><code>processed_messages(consumer, event_id)</code> unique + transaction</td>
+</tr>
+<tr>
+<td>Payment webhook</td>
+<td>Đánh dấu thanh toán hai lần</td>
+<td><code>provider_event_id</code> hoặc provider payment unique; verify signature</td>
+</tr>
+<tr>
+<td>Stock release/refund</td>
+<td>Cộng tồn kho hoặc hoàn tiền hai lần</td>
+<td>Reservation terminal CAS; refund idempotency key + provider transaction reference</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-05/diagram-10.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 10" loading="lazy" src="assets/chapter-05/diagram-10.svg"/></a><figcaption><strong>Sơ đồ 10</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Retry same request"] --&gt; B{"Idempotency key exists?"}
+    B --&gt;|No| C["Reserve key and run business transaction"]
+    B --&gt;|Yes same payload| D["Return stored or current result"]
+    B --&gt;|Yes different payload| E["Reject key reuse"]
+    C --&gt; F["Persist order ID + result"]
+</pre></details></figcaption></figure>
+<p>Idempotency ở API của PSP giúp retry thao tác phía PSP, nhưng <strong>không thay thế</strong> idempotency tại API và database của bạn. Tài liệu Stripe mô tả idempotency key cho việc retry mà không tạo thao tác trùng, kèm giới hạn lưu kết quả phụ thuộc provider: xem tài liệu tham khảo.</p>
+<h2 id="5-12-crash-gi-a-commit-v-publish-transactional-outbox">5.12. Crash giữa Commit và Publish: Transactional Outbox</h2>
+<p>Bad case:</p>
+<pre><code class="language-java">saveOrder();           // DB commit succeeded
+rabbitTemplate.send(); // JVM crashes before this line
+</code></pre>
+<p>Database đã có đơn nhưng Inventory/Fulfillment không bao giờ nhận <code>OrderPlaced</code>.</p>
+<p>Đảo thứ tự cũng nguy hiểm: message phát đi nhưng transaction tạo đơn rollback.</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-11.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 11" loading="lazy" src="assets/chapter-05/diagram-11.svg"/></a><figcaption><strong>Sơ đồ 11</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Begin DB transaction"] --&gt; B["Change order state"]
+    B --&gt; C["Insert outbox event"]
+    C --&gt; D["Commit together"]
+    D --&gt; E["Outbox relay publishes"]
+    E --&gt; F["Broker delivers at least once"]
+    F --&gt; G["Idempotent consumer"]
+</pre></details></figcaption></figure>
+<p>Trong cùng DB transaction, <code>orders</code> và <code>outbox_events</code> cùng commit hoặc rollback. Relay gửi message ngoài transaction rồi đánh dấu published. Relay vẫn có thể crash sau khi publish nhưng trước khi đánh dấu, dẫn đến <strong>duplicate event</strong>. Vì vậy consumer phải idempotent; outbox không đảm bảo exactly-once end-to-end một cách thần kỳ.</p>
+<p>AWS Prescriptive Guidance mô tả outbox như cách xử lý dual write và lưu ý duplicate/order concerns. Xem phần tài liệu tham khảo.</p>
+<h2 id="5-13-payment-timeout-unknown-l-th-ng-tin-kh-ng-ph-i-s-th-t-b-i">5.13. Payment timeout: <code>UNKNOWN</code> là thông tin, không phải sự thất bại</h2>
+<p>Bad case:</p>
+<pre><code class="language-text">HTTP to PSP → timeout → set PAYMENT_FAILED → release stock
+</code></pre>
+<p>Nếu PSP đã thu tiền thành công nhưng response mất trên mạng thì bạn tạo trường hợp paid-without-order/stock.</p>
+<p>Quy trình tốt hơn:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-12.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 12" loading="lazy" src="assets/chapter-05/diagram-12.svg"/></a><figcaption><strong>Sơ đồ 12</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Send payment request with stable key"] --&gt; B{"Gateway outcome?"}
+    B --&gt;|Success verified| C["Record SUCCEEDED"]
+    B --&gt;|Failure verified| D["Record FAILED"]
+    B --&gt;|Timeout / uncertain| E["Record UNKNOWN / PROCESSING"]
+    E --&gt; F["Webhook + poll or reconciliation"]
+    F --&gt; G{"Verified final result?"}
+    G --&gt;|Paid| C
+    G --&gt;|Not paid| D
+    G --&gt;|Still unknown| H["Retry verification with backoff"]
+</pre></details></figcaption></figure>
+<p>PSP webhooks là tín hiệu bên ngoài cần xác minh chữ ký và đối chiếu <code>payment reference</code>, số tiền, tiền tệ và đơn hàng. Có thể nhận duplicate hoặc sự kiện không theo thứ tự; đừng lấy thời gian nhận webhook làm thứ tự chân lý tuyệt đối. Đọc thêm Stripe PaymentIntents lifecycle và event handling tài liệu cuối chương.</p>
+<p><strong>Tách triệt để:</strong> <code>order_status</code>, <code>payment_status</code>, <code>refund_status</code>. Nếu <code>payment_status=SUCCEEDED</code> nhưng <code>order_status=CANCELLING</code>, system tiếp tục business workflow được khai báo, không mất một trong hai sự thật.</p>
+<h2 id="5-14-worker-crash-queue-backlog-v-recovery-design">5.14. Worker crash, queue backlog và recovery design</h2>
+<p>Ví dụ Worker nhận <code>OrderConfirmed</code> rồi crash sau khi gọi kho nhưng trước khi ack broker. Broker redeliver; nếu không có dedupe, fulfilment tạo hai lần. Workflow an toàn phải nhận diện: order ID, fulfillment unique reference, processed message và command idempotency.</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-13.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 13" loading="lazy" src="assets/chapter-05/diagram-13.svg"/></a><figcaption><strong>Sơ đồ 13</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    B["Broker delivers event"] --&gt; W["Worker"]
+    W --&gt; D{"Already processed?"}
+    D --&gt;|Yes| ACK["Ack"]
+    D --&gt;|No| TX["DB transaction: business action + dedupe marker"]
+    TX --&gt; ACK
+    W --&gt; CR["Crash before ack"]
+    CR --&gt; RD["Redelivery"]
+    RD --&gt; D
+</pre></details></figcaption></figure>
+<p>Các loại lỗi nên phân biệt:</p>
+<ul>
+<li><strong>Transient:</strong> DB failover ngắn, network timeout → bounded retry với backoff/jitter.</li>
+<li><strong>Permanent business:</strong> order terminal không hợp lệ, out of stock → ghi kết quả nghiệp vụ, không retry vô hạn.</li>
+<li><strong>Poison message:</strong> dữ liệu sai schema hoặc bug → DLQ/quarantine + alert.</li>
+<li><strong>Ambiguous external effect:</strong> refund request timeout → tra trạng thái provider trước khi lặp lại cùng idempotency key.</li>
+</ul>
+<p>Tránh <code>catch(Exception e) { retry(); }</code> vô hạn gây retry storm. Worker concurrency cần giới hạn độc lập với HTTP API replica; queue length không phải chỉ số duy nhất, phải theo dõi <strong>oldest message age</strong>.</p>
+<h2 id="5-15-database-schema-thi-t-k-d-d-gi-i-th-ch-m-t-d-n-h-ng">5.15. Database schema: thiết kế đủ để giải thích một đơn hàng</h2>
+<p>Nhóm bảng tối thiểu cho chapter lab:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-14.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 14" loading="lazy" src="assets/chapter-05/diagram-14.svg"/></a><figcaption><strong>Sơ đồ 14</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>erDiagram
+    CUSTOMERS ||--o{ ORDERS : places
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS ||--o{ PAYMENT_ATTEMPTS : attempts
+    ORDERS ||--o{ STOCK_RESERVATIONS : holds
+    INVENTORY ||--o{ STOCK_RESERVATIONS : allocates
+    ORDERS ||--o{ ORDER_TRANSITIONS : audits
+    ORDERS ||--o{ OUTBOX_EVENTS : emits
+</pre></details></figcaption></figure>
+<p><strong>Tránh mô hình sai:</strong> Không dùng <code>order_id</code> làm khóa duy nhất của payment attempts nếu một đơn được phép retry thanh toán. Không gộp trạng thái refund vào payment cũ mà mất refund transaction ID. <code>Order</code> có thể kết thúc nghiệp vụ bán trong khi return/refund vẫn đang mở.</p>
+<p>Trong SQL Lab, bảng <code>orders</code> có <code>status</code>, <code>version</code>, <code>total_amount</code>, <code>currency</code>, <code>request_fingerprint</code>, <code>idempotency_key</code>; <code>order_items</code> lưu <code>unit_price</code> snapshot; <code>inventory</code> dùng <code>on_hand</code> và <code>reserved</code>; <code>stock_reservations</code> lưu terminal status riêng; <code>payment_attempts</code> có unique provider reference; <code>order_transitions</code> giữ audit; <code>outbox_events</code> giữ event bền vững.</p>
+<h3 id="c-c-m-u-constraint-quan-tr-ng">Các mẫu constraint quan trọng</h3>
+<pre><code class="language-sql">CHECK (on_hand &gt;= 0 AND reserved &gt;= 0 AND reserved &lt;= on_hand)
+</code></pre>
+<pre><code class="language-sql">UNIQUE (user_id, idempotency_key)
+</code></pre>
+<pre><code class="language-sql">UNIQUE (provider, provider_payment_id)
+</code></pre>
+<p>Các constraint này là tuyến phòng thủ cuối, không thay thế việc mô hình hóa nghiệp vụ trong application service.</p>
+<h2 id="5-16-spring-boot-design-command-handler-state-guards-local-transaction">5.16. Spring Boot design: command handler + state guards + local transaction</h2>
+<p>Một module đơn giản:</p>
+<pre><code class="language-text">order/
+  api/
+    OrderController.java
+  application/
+    CheckoutService.java
+    CancelOrderHandler.java
+    ConfirmPaymentHandler.java
+  domain/
+    Order.java
+    OrderStatus.java
+    OrderPolicy.java
+  persistence/
+    OrderRepository.java
+    OrderTransitionRepository.java
+  messaging/
+    OutboxRelay.java
+</code></pre>
+<p>Pseudo-code quan trọng nhất của cancel handler:</p>
+<pre><code class="language-java">@Transactional
+public CancelResult requestCancel(long orderId, long actorId) {
+    Order order = orderRepository.lockById(orderId);
+    authz.assertCanCancel(actorId, order);
+
+    if (order.isCancelled()) return CancelResult.alreadyCancelled(orderId);
+    if (!policy.canRequestCancel(order)) throw new BusinessConflict("NOT_CANCELLABLE");
+
+    order.requestCancellation(); // validated PENDING_PAYMENT/CONFIRMED -&gt; CANCELLING
+    transitions.append(orderId, "CancelRequested", actorId);
+    outbox.append(orderId, "CancelRequested", order.version());
+    return CancelResult.accepted(orderId);
+}
+</code></pre>
+<p>Đây là <strong>architectural pseudocode</strong>, không phải class Java được biên dịch sẵn: repository/authz/policy/outbox là abstraction cần implement. <code>lockById()</code> trong cùng transaction có thể dùng <code>SELECT ... FOR UPDATE</code>; nếu dùng optimistic locking, phải kiểm tra affected rows hoặc version conflict rồi quyết định lại theo state hiện tại. Không dùng lock rồi đi gọi PSP trong transaction.</p>
+<h3 id="spring-event-kh-ng-m-c-d-nh-l-reliable-message-broker">Spring event không mặc định là reliable message broker</h3>
+<p>Gọi <code>applicationEventPublisher.publishEvent(...)</code> trong process không đồng nghĩa với sự kiện đã được lưu bền vững hoặc consumer khác nhận chắc chắn. Nếu event thúc đẩy bước nghiệp vụ quan trọng, cần thiết kế độ tin cậy phù hợp (outbox/retry/dedupe).</p>
+<h2 id="5-17-observability-do-m-t-lifecycle-ch-kh-ng-ch-do-http-200">5.17. Observability: đo một lifecycle chứ không chỉ đo HTTP 200</h2>
+<p>Chỉ nhìn latency <code>POST /orders</code> là thiếu. Các metric có ý nghĩa nghiệp vụ:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Giúp trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>checkout_success_rate</code></td>
+<td>Bao nhiêu request hợp lệ tạo đơn thành công?</td>
+</tr>
+<tr>
+<td><code>orders_pending_payment_age</code></td>
+<td>Đơn chờ tiền lâu bao nhiêu?</td>
+</tr>
+<tr>
+<td><code>payment_unknown_count</code></td>
+<td>Bao nhiêu thanh toán đang mơ hồ?</td>
+</tr>
+<tr>
+<td><code>reservation_expired_count</code></td>
+<td>Bao nhiêu giữ hàng hết hạn?</td>
+</tr>
+<tr>
+<td><code>refund_pending_age</code></td>
+<td>Tiền hoàn đang bị chậm bao lâu?</td>
+</tr>
+<tr>
+<td><code>invalid_transition_total</code></td>
+<td>Có bao nhiêu command/event trái trạng thái?</td>
+</tr>
+<tr>
+<td><code>outbox_oldest_unpublished_age</code></td>
+<td>Sự kiện quan trọng bị kẹt bao lâu?</td>
+</tr>
+<tr>
+<td><code>broker_oldest_message_age</code></td>
+<td>Worker có đang theo kịp traffic?</td>
+</tr>
+<tr>
+<td><code>inventory_reserved_vs_active_sum</code></td>
+<td>Reserved của kho có khớp tổng reservation ACTIVE?</td>
+</tr>
+</tbody>
+</table>
+<p>Đừng đưa <code>user_email</code>, địa chỉ nhận, số thẻ hoặc raw PSP secrets vào label metrics/logs. Sử dụng correlation ID/order ID có kiểm soát, masking và phân quyền đọc log.</p>
+<h3 id="reconciliation-jobs">Reconciliation jobs</h3>
+<ul>
+<li>Payment provider <code>SUCCEEDED</code> nhưng local order chưa <code>CONFIRMED</code>/chưa có case xử lý.</li>
+<li>Order <code>CANCELLING</code> quá SLA; phát hiện PSP vẫn đang xử lý.</li>
+<li>Reservation <code>ACTIVE</code> quá hạn nhưng chưa có decision.</li>
+<li><code>inventory.reserved</code> khác tổng <code>stock_reservations</code> ACTIVE.</li>
+<li><code>outbox_events</code> chưa publish quá ngưỡng.</li>
+<li>Refund provider đã thành công nhưng local record còn pending.</li>
+</ul>
+<p><strong>Reconciliation không phải dấu hiệu thiết kế kém:</strong> trong hệ thống có external services và trạng thái bất đồng bộ, nó là lớp kiểm chứng và phục hồi thiết yếu.</p>
+<h2 id="5-18-bottleneck-shifting-trong-order-lifecycle">5.18. Bottleneck Shifting trong Order Lifecycle</h2>
+<p>Cùng một thứ tự tư duy của cuốn sách:</p>
+<figure class="diagram"><a href="assets/chapter-05/diagram-15.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 15" loading="lazy" src="assets/chapter-05/diagram-15.svg"/></a><figcaption><strong>Sơ đồ 15</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["API traffic surge"] --&gt; B["Scale Spring Boot Pods"]
+    B --&gt; C["DB connection pressure"]
+    C --&gt; D["Pool sizing + admission control"]
+    D --&gt; E["Hot inventory/order rows"]
+    E --&gt; F["Atomic update + partitioned processing"]
+    F --&gt; G["Queue backlog"]
+    G --&gt; H["Worker scaling within capacity"]
+    H --&gt; I["PSP rate limits / uncertain outcomes"]
+    I --&gt; J["Reconciliation + throttling"]
+</pre></details></figcaption></figure>
+<p>Với Flash Sale, “scale mọi thứ lên 100 Pod” không khiến một SKU có thêm hàng hay PSP có thêm hạn mức. Nếu giữ transaction mở dài, nhiều Worker có thể chỉ tạo thêm hàng đợi lock. Khi mở rộng, cần đo chính xác <strong>bottleneck hiện tại</strong> trước khi tăng replica.</p>
+<h2 id="5-19-engineering-lab-di-n-t-p-m-t-v-ng-d-i-d-n">5.19. Engineering Lab — diễn tập một vòng đời đơn</h2>
+<p>Bộ file trong <code>labs/chapter-05/</code> gồm <code>schema.sql</code>, <code>seed.sql</code>, <code>queries.sql</code>, <code>test-scenarios.md</code> và <code>README.md</code>.</p>
+<h3 id="thi-t-l-p">Thiết lập</h3>
+<ol>
+<li>Tạo PostgreSQL DB thí nghiệm riêng.</li>
+<li>Chạy <code>schema.sql</code>, sau đó <code>seed.sql</code> bằng <code>psql</code>.</li>
+<li>Chạy từng transaction có chú thích trong <code>queries.sql</code>, nhất là <strong>reserve once</strong> và <strong>release once</strong>.</li>
+<li>Mở hai session để mô phỏng cạnh tranh <code>CancelRequested</code> vs <code>PaymentVerified</code>.</li>
+<li>Thử duplicate <code>idempotency_key</code>, duplicate <code>provider_event_id</code> và phát event sai trạng thái.</li>
+</ol>
+<h3 id="b-i-to-n-b-t-bu-c">Bài toán bắt buộc</h3>
+<p><strong>A. Reserve once:</strong> <code>on_hand=1</code>, hai checkout đồng thời; nhiều nhất một reservation ACTIVE được commit.</p>
+<p><strong>B. Release once:</strong> hai Worker cùng cancel một order; <code>reserved</code> chỉ giảm đúng một đơn vị.</p>
+<p><strong>C. Late payment:</strong> order đã vào <code>CANCELLING</code>; callback success tới sau; không hồi sinh <code>CANCELLED</code> bằng update không guard.</p>
+<p><strong>D. Crash after commit:</strong> order/outbox đã lưu; giả lập relay crash; phát lại event an toàn với dedupe.</p>
+<p><strong>E. Partial return:</strong> đơn có 2 item, chỉ 1 được hoàn; payment/refund ledger khớp theo số tiền thực tế.</p>
+<h3 id="d-p-n-t-duy-test-kh-ng-th-thi-u">Đáp án tư duy: test không thể thiếu</h3>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Kết quả kỳ vọng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>on_hand=1</code>, 2 concurrent checkout</td>
+<td>Tối đa 1 active reservation</td>
+</tr>
+<tr>
+<td>Cancel được gửi lại sau thành công</td>
+<td>Không tăng available lần hai</td>
+</tr>
+<tr>
+<td>Hai webhook cùng provider event ID</td>
+<td>Một bản ghi dedupe; một business side effect</td>
+</tr>
+<tr>
+<td>Payment timeout</td>
+<td><code>UNKNOWN</code>/<code>PROCESSING</code>, không tự coi <code>FAILED</code></td>
+</tr>
+<tr>
+<td><code>SHIPPED</code> nhận <code>CancelRequested</code></td>
+<td>Từ chối simple cancellation hoặc chuyển workflow phù hợp</td>
+</tr>
+<tr>
+<td>Relay publish rồi crash</td>
+<td>Event có thể redeliver, consumer không tạo double effect</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-20-chapter-review-t-duy-tr-c-khi-ch-n-c-ng-ngh">5.20. Chapter Review — tư duy trước khi chọn công nghệ</h2>
+<ol>
+<li>Nếu order đã <code>CANCELLED</code> nhưng PSP báo <code>SUCCEEDED</code>, tại sao <code>UPDATE orders SET status='CONFIRMED'</code> là sai?</li>
+<li>Vì sao cần phân biệt cancel request với cancelled fact?</li>
+<li>Vì sao unique idempotency key trên order không đủ bảo vệ refund và webhook?</li>
+<li>Nếu một payment đã thu tiền thành công còn fulfillment chưa diễn ra, chúng ta có thể hoàn stock trước khi resolve refund không? Rule nào chi phối?</li>
+<li>CAS status/version giải quyết được loại race nào; loại external failure nào nó không giải quyết?</li>
+<li>Khi nào local transaction giải quyết được consistency? Khi nào cần outbox và Saga?</li>
+<li>Nếu <code>broker_oldest_message_age</code> tăng trong khi API latency thấp, điểm nghẽn nằm ở đâu?</li>
+<li>Nếu một checkout chứa hai seller, nên tạo một order hay order group + seller orders? Vì sao?</li>
+</ol>
+<h3 id="knowledge-map">Knowledge Map</h3>
+<figure class="diagram"><a href="assets/chapter-05/diagram-16.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 16" loading="lazy" src="assets/chapter-05/diagram-16.svg"/></a><figcaption><strong>Sơ đồ 16</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    O["Order Lifecycle"] --&gt; SM["State Machine &amp; Guards"]
+    O --&gt; TB["Transaction Boundary"]
+    O --&gt; CC["Concurrency"]
+    O --&gt; PC["Payment Consistency"]
+    O --&gt; RR["Reliability &amp; Recovery"]
+    SM --&gt; AUD["Audit Transitions"]
+    TB --&gt; RES["Reservation + Snapshot"]
+    CC --&gt; CAS["CAS / Row Lock"]
+    PC --&gt; IDE["Idempotency + Reconciliation"]
+    RR --&gt; OUT["Outbox + Retry + DLQ"]
+</pre></details></figcaption></figure>
+<h3 id="key-takeaways">Key Takeaways</h3>
+<ul>
+<li><strong>Order status không thay thế payment, reservation, fulfillment, return và refund state.</strong></li>
+<li><strong>Một state transition = guard + atomic state change + audit + reliable side effects.</strong></li>
+<li><strong>Không định nghĩa timeout thành business failure, nhất là với payment.</strong></li>
+<li><strong>Thao tác lặp phải không gây side effect trùng; terminal inventory release là one-way.</strong></li>
+<li><strong>Local transaction đúng lúc, ngắn; external calls chạy ngoài transaction.</strong></li>
+<li><strong>Outbox/consumer dedupe giúp phục hồi khi process chết, không làm event tự nhiên exactly-once.</strong></li>
+<li><strong>Bottleneck tiếp theo có thể là hot row, queue, PSP hay reconciliation, chứ không chỉ database CPU.</strong></li>
+</ul>
+<hr/>
+<h2 id="t-i-li-u-tham-kh-o-k-thu-t">Tài liệu tham khảo kỹ thuật</h2>
+<ul>
+<li>PostgreSQL Documentation, <em>Explicit Locking</em>, row-level locking / transaction scope: <a href="https://www.postgresql.org/docs/current/explicit-locking.html">https://www.postgresql.org/docs/current/explicit-locking.html</a></li>
+<li>AWS Prescriptive Guidance, <em>Transactional outbox pattern</em>: <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html">https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html</a></li>
+<li>AWS Prescriptive Guidance, <em>Saga choreography pattern</em>: <a href="https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-choreography.html">https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-choreography.html</a></li>
+<li>Stripe API Reference, <em>Idempotent requests</em>: <a href="https://docs.stripe.com/api/idempotent_requests">https://docs.stripe.com/api/idempotent_requests</a></li>
+<li>Stripe API Reference, <em>PaymentIntents and their lifecycle</em>: <a href="https://docs.stripe.com/api/payment_intents">https://docs.stripe.com/api/payment_intents</a></li>
+<li>Stripe Docs, <em>Webhooks</em>: <a href="https://docs.stripe.com/webhooks">https://docs.stripe.com/webhooks</a></li>
+</ul>
+<blockquote>
+<p><strong>Đóng Volume 1:</strong> Chương 01–05 trả lời lần lượt: E-commerce có những luồng nghiệp vụ gì; ai sở hữu các luồng đó trong từng business model; domain được phân ranh ra sao; giá được xác định/chốt như thế nào; và cuối cùng một order được quản lý đúng qua mọi thay đổi/ngoại lệ. <strong>Volume 2</strong> sẽ bắt đầu từ Modular Monolith và schema/API implementation, không cần nhảy thẳng lên microservices.</p>
+</blockquote>
+</article><footer>Inside E-commerce · Volume 1 · Chapter 05 · Offline edition</footer></main>
+<script>
+const nav=document.querySelector('nav');
+document.getElementById('search').addEventListener('input',e=>{
+ const s=e.target.value.trim().toLocaleLowerCase('vi');
+ nav.querySelectorAll('a.h2,a.h3').forEach(x=>x.style.display=x.textContent.toLocaleLowerCase('vi').includes(s)?'block':'none');
+});
+document.getElementById('mobile').onclick=()=>document.body.classList.toggle('nav-open');
+nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('nav-open')));
+document.getElementById('theme').onclick=()=>{document.body.classList.toggle('dark');document.getElementById('theme').textContent=document.body.classList.contains('dark')?'☀ Sáng':'☾ Tối';};
+window.addEventListener('scroll',()=>{let d=document.documentElement;let max=d.scrollHeight-d.clientHeight;document.getElementById('progress').style.width=(max?100*d.scrollTop/max:0)+'%';},{passive:true});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){nav.querySelectorAll('a.active').forEach(x=>x.classList.remove('active'));let a=nav.querySelector('a[href="#'+e.target.id+'"]');if(a)a.classList.add('active');}}),{rootMargin:'-16% 0px -73% 0px'});
+document.querySelectorAll('article h2[id],article h3[id]').forEach(h=>obs.observe(h));
+</script></body></html>

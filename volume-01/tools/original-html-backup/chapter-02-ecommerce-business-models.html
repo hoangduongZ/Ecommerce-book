@@ -1,0 +1,736 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Inside E-commerce Volume 1 Chapter 02 — E-commerce Business Models"><title>Inside E-commerce · Chapter 02</title><style>
+:root{--ink:#153047;--muted:#5f7386;--line:#deebf2;--light:#f3f7fb;--blue:#186aa8}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--light);color:var(--ink);font:16px/1.8 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+nav{position:fixed;inset:0 auto 0 0;width:300px;overflow-y:auto;background:#10293e;color:white;padding:24px 16px;z-index:3}nav strong{display:block;font-size:20px;margin-bottom:3px}nav small{display:block;color:#a8c3d5;margin-bottom:22px}nav a{display:block;color:#c5d9e8;text-decoration:none;padding:7px 9px;margin:2px 0;font-size:12.5px;line-height:1.4;border-radius:7px}nav a:hover{background:#204660;color:white}nav .lv3{padding-left:19px;color:#a7c2d5}
+main{margin-left:300px;padding:32px 25px 90px}article{max-width:1010px;padding:48px 56px;margin:auto;background:white;border-radius:13px;box-shadow:0 8px 30px #162f4612;border:1px solid var(--line)}h1,h2,h3,h4{line-height:1.3;color:#0c304c;scroll-margin-top:25px}h1{font-size:2.55rem;margin:0}h2{font-size:1.7rem;margin-top:2.3em;border-bottom:2px solid #e5eef5;padding-bottom:.42em}h3{font-size:1.23rem;margin-top:2em}h4{font-size:1.07rem}p{margin:14px 0}blockquote{margin:22px 0;padding:8px 20px;background:#eaf5ff;border-left:4px solid #358fca;border-radius:0 9px 9px 0}blockquote p{margin:7px 0}a{color:var(--blue)}table{border-collapse:collapse;width:100%;font-size:13.4px;margin:22px 0}th,td{border:1px solid #dbe7ee;padding:10px 12px;vertical-align:top}th{background:#eaf3fa;text-align:left}tr:nth-child(even){background:#f8fbfd}pre{overflow:auto;background:#132d42;color:#ebf6ff;border-radius:9px;padding:15px 18px;font-size:12.5px;line-height:1.6}code:not(pre code){background:#eaf2f8;padding:2px 5px;border-radius:4px;font-size:.92em}hr{border:none;border-top:2px solid var(--line);margin:36px 0}.diagram{margin:25px 0;border:1px solid #d8e7ef;border-radius:12px;padding:17px;background:#fbfdff;text-align:center}.diagram img{display:block;margin:auto;width:100%;height:auto;max-height:550px;object-fit:contain}.diagram figcaption{font-size:12px;color:#61788a}.diagram details{text-align:left;margin-top:8px}.diagram summary{cursor:pointer;color:#1769b0;display:inline-block}.diagram pre{white-space:pre-wrap}.tag{font-size:11px;letter-spacing:.12em;color:#1769b0;font-weight:800}.foot{font-size:12px;color:#73889a;margin-top:44px}.mobile-toggle{position:fixed;right:14px;bottom:13px;background:#1465a2;color:white;border:0;border-radius:9px;padding:10px 15px;cursor:pointer;display:none;z-index:6}.exercise{background:#f0f7fc;padding:18px;border-radius:10px;margin-top:28px}@media(max-width:980px){nav{transform:translateX(-101%);transition:transform .2s}body.open nav{transform:translateX(0)}.mobile-toggle{display:block}main{margin:0;padding:14px}article{padding:26px 18px}table{display:block;overflow-x:auto}body{font-size:15px}}@media print{nav,.mobile-toggle{display:none}main{margin:0;padding:0}article{border:0;box-shadow:none;max-width:none;padding:0}h2,h3{break-after:avoid}.diagram{break-inside:avoid}a{color:inherit}}
+</style></head><body><nav><strong>INSIDE E-COMMERCE</strong><small>Volume 1 · Chapter 02<br>Business Models</small><a class="lv2" href="#volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</a>
+<a class="lv3" href="#chapter-02-e-commerce-business-models">Chapter 02 — E-commerce Business Models</a>
+<a class="lv2" href="#sau-chuong-nay-ban-co-the">Sau chương này, bạn có thể</a>
+<a class="lv2" href="#2-1-bat-au-tu-mot-cua-hang-ien-thoai">2.1. Bắt đầu từ một cửa hàng điện thoại</a>
+<a class="lv2" href="#2-2-cac-thuat-ngu-khong-nam-tren-cung-mot-truc">2.2. Các thuật ngữ không nằm trên cùng một trục</a>
+<a class="lv3" href="#dropshipping-nam-o-au">Dropshipping nằm ở đâu?</a>
+<a class="lv3" href="#saas-ban-cong-cu-e-commerce-co-phai-marketplace">SaaS bán công cụ E-commerce có phải marketplace?</a>
+<a class="lv2" href="#2-3-ma-tran-trach-nhiem-thiet-ke-truoc-khi-viet-entity">2.3. Ma trận trách nhiệm — thiết kế trước khi viết entity</a>
+<a class="lv2" href="#2-4-chuyen-tu-mot-product-sang-nhieu-offer">2.4. Chuyển từ một Product sang nhiều Offer</a>
+<a class="lv3" href="#2-4-1-sai-lam-khi-chi-them-seller-id-vao-products">2.4.1. Sai lầm khi chỉ thêm seller_id vào products</a>
+<a class="lv3" href="#2-4-2-phan-biet-bon-oi-tuong">2.4.2. Phân biệt bốn đối tượng</a>
+<a class="lv3" href="#2-4-3-ai-uoc-sua-truong-nao">2.4.3. Ai được sửa trường nào?</a>
+<a class="lv2" href="#2-5-single-seller-checkout-va-multi-seller-checkout-khac-nhau-o-au">2.5. Single-seller checkout và multi-seller checkout khác nhau ở đâu?</a>
+<a class="lv3" href="#2-5-1-thiet-ke-khai-niem-order-group-va-seller-order">2.5.1. Thiết kế khái niệm order group và seller order</a>
+<a class="lv3" href="#2-5-2-vi-sao-khong-luu-seller-id-truc-tiep-trong-bang-orders">2.5.2. Vì sao không lưu seller_id trực tiếp trong bảng orders?</a>
+<a class="lv3" href="#2-5-3-partial-failure-la-trang-thai-binh-thuong">2.5.3. Partial failure là trạng thái bình thường</a>
+<a class="lv2" href="#2-6-dong-tien-marketplace-ba-loai-so-tien-khong-uoc-tron">2.6. Dòng tiền marketplace — ba loại số tiền không được trộn</a>
+<a class="lv3" href="#2-6-1-vi-du-tinh-tien-minh-hoa">2.6.1. Ví dụ tính tiền minh họa</a>
+<a class="lv3" href="#2-6-2-charge-khac-transfer-va-payout">2.6.2. Charge khác transfer và payout</a>
+<a class="lv3" href="#2-6-3-refund-mot-phan-lam-thay-oi-ieu-gi">2.6.3. Refund một phần làm thay đổi điều gì?</a>
+<a class="lv3" href="#2-6-4-marketplace-khac-vi-ien-tu">2.6.4. Marketplace khác ví điện tử</a>
+<a class="lv2" href="#2-7-vi-sao-marketplace-can-seller-onboarding-va-tenant-isolation">2.7. Vì sao Marketplace cần seller onboarding và tenant isolation?</a>
+<a class="lv3" href="#2-7-1-onboarding-state-machine">2.7.1. Onboarding state machine</a>
+<a class="lv3" href="#2-7-2-data-isolation-la-invariant-khong-phai-mot-cau-where-tuy-hung">2.7.2. Data isolation là invariant, không phải một câu WHERE tùy hứng</a>
+<a class="lv2" href="#2-8-schema-tham-khao-cho-marketplace-khong-bat-au-bang-microservices">2.8. Schema tham khảo cho Marketplace — không bắt đầu bằng microservices</a>
+<a class="lv3" href="#api-toi-thieu">API tối thiểu</a>
+<a class="lv2" href="#2-9-sequence-mot-checkout-hai-seller-hai-lan-giao-hang">2.9. Sequence: một checkout, hai seller, hai lần giao hàng</a>
+<a class="lv3" href="#cau-hoi-ve-trang-thai-tong-hop">Câu hỏi về trạng thái tổng hợp</a>
+<a class="lv2" href="#2-10-business-model-decisions-system-design-consequences">2.10. Business-model decisions → System-design consequences</a>
+<a class="lv2" href="#2-11-b2b-khi-nguoi-mua-khong-con-la-mot-ca-nhan">2.11. B2B: khi người mua không còn là một cá nhân</a>
+<a class="lv2" href="#2-12-failure-scenarios-chuyen-oi-business-model-that-bai-nhu-the-nao">2.12. Failure scenarios: chuyển đổi business model thất bại như thế nào?</a>
+<a class="lv2" href="#2-13-engineering-lab-nang-cap-hoang-phone-thanh-marketplace">2.13. Engineering Lab — Nâng cấp Hoàng Phone thành marketplace</a>
+<a class="lv3" href="#bai-toan">Bài toán</a>
+<a class="lv3" href="#lab-a-ma-tran-trach-nhiem">Lab A — Ma trận trách nhiệm</a>
+<a class="lv3" href="#lab-b-thiet-ke-database">Lab B — Thiết kế database</a>
+<a class="lv3" href="#lab-c-viet-api-authorization-tests">Lab C — Viết API authorization tests</a>
+<a class="lv3" href="#lab-d-simulate-partial-cancellation">Lab D — Simulate partial cancellation</a>
+<a class="lv3" href="#lab-e-commission-arithmetic">Lab E — Commission arithmetic</a>
+<a class="lv2" href="#knowledge-map">Knowledge Map</a>
+<a class="lv2" href="#key-takeaways">Key Takeaways</a>
+<a class="lv2" href="#tai-lieu-tham-khao-va-gioi-han-ap-dung">Tài liệu tham khảo và giới hạn áp dụng</a></nav><main><article><div class="tag">BACKEND ENGINEERING · SYSTEM DESIGN</div><h1 id="inside-e-commerce">INSIDE E-COMMERCE</h1>
+<h2 id="volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</h2>
+<h3 id="chapter-02-e-commerce-business-models">Chapter 02 — E-commerce Business Models</h3>
+<blockquote>
+<p><strong>Câu hỏi dẫn đường:</strong> Tại sao một cửa hàng tự bán hàng và một marketplace có nhiều người bán đều có Product, Cart, Order, Payment nhưng cần <strong>mô hình dữ liệu, phân quyền, checkout, tồn kho và dòng tiền</strong> khác nhau?</p>
+</blockquote>
+<blockquote>
+<p><strong>Giới hạn chương:</strong> Đây là tài liệu học kiến trúc phần mềm. Thuế, tư cách người bán chính thức, trách nhiệm hoàn tiền và quy trình chuyển tiền phụ thuộc hợp đồng, cổng thanh toán và từng thị trường; ví dụ trong sách là mô hình nghiệp vụ giả định, không thay cho tư vấn pháp lý/kế toán.</p>
+</blockquote>
+<h2 id="sau-chuong-nay-ban-co-the">Sau chương này, bạn có thể</h2>
+<ul>
+<li>Phân biệt <strong>B2C, B2B, C2C, D2C, 1P retail, 3P marketplace và hybrid</strong> mà không nhầm các trục phân loại.</li>
+<li>Nêu ai là <strong>seller of record</strong>, ai sở hữu hàng, ai định giá, ai đóng gói, ai tiếp nhận tiền và ai giải quyết trả hàng cho từng mô hình.</li>
+<li>Giải thích vì sao một cart nhiều seller cần <strong>order group + seller orders</strong>, và có thể có nhiều shipment, refund, settlement.</li>
+<li>Phân biệt <strong>catalog product, seller listing/offer, SKU, seller inventory, order item snapshot</strong>.</li>
+<li>Phác thảo schema, API và authorization boundaries cho marketplace bằng Spring Boot/PostgreSQL.</li>
+<li>Tránh sai lầm đồng nhất <code>PAID</code>, <code>DELIVERED</code>, <code>SETTLED</code> hoặc coi Seller Balance là tiền chắc chắn đã chuyển tới ngân hàng.</li>
+</ul>
+<hr />
+<h2 id="2-1-bat-au-tu-mot-cua-hang-ien-thoai">2.1. Bắt đầu từ một cửa hàng điện thoại</h2>
+<p>Ở chương 01, bạn xây cửa hàng <strong>Hoàng Phone</strong>: cửa hàng nhập điện thoại từ nhà phân phối, đăng sản phẩm, lưu kho, bán hàng, nhận thanh toán và giao hàng. Toàn bộ nghiệp vụ khá dễ hình dung vì phần lớn trách nhiệm tập trung về một đơn vị bán hàng.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-01.svg" alt="Sơ đồ kỹ thuật 01" loading="lazy"><figcaption>Sơ đồ 01 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart LR
+  C[Customer] --&gt; S[Hoàng Phone]
+  S --&gt; P[Product &amp; Price]
+  S --&gt; I[Own Inventory]
+  S --&gt; O[Own Orders]
+  S --&gt; F[Shipping / Return]
+  C --&gt; Pay[Payment]
+  Pay --&gt; S
+</pre></details></figcaption></figure>
+<p>Một hôm, Hoàng Phone muốn bán thêm laptop, tai nghe, đồng hồ và phụ kiện mà không tự nhập tất cả vào kho. Cửa hàng mở cổng cho hai đối tác:</p>
+<ul>
+<li><strong>Seller A</strong> bán điện thoại và tai nghe từ kho Hà Nội.</li>
+<li><strong>Seller B</strong> bán đồng hồ và phụ kiện từ kho TP.HCM.</li>
+</ul>
+<p>Khách hàng vẫn nhìn thấy <strong>một website, một giỏ hàng, một nút checkout</strong>. Nhưng đằng sau, hai seller có tồn kho, giá, trạng thái xác nhận đơn và vận chuyển riêng. Dòng tiền còn phải chia theo thỏa thuận giữa nền tảng và từng seller.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-02.svg" alt="Sơ đồ kỹ thuật 02" loading="lazy"><figcaption>Sơ đồ 02 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  C[Customer] --&gt; M[Marketplace Platform]
+  M --&gt; A[Seller A: price / stock / fulfillment]
+  M --&gt; B[Seller B: price / stock / fulfillment]
+  M --&gt; Ch[Unified checkout]
+  Ch --&gt; OG[Order group]
+  OG --&gt; OA[Seller order A]
+  OG --&gt; OB[Seller order B]
+  OA --&gt; SA[Shipment A]
+  OB --&gt; SB[Shipment B]
+</pre></details></figcaption></figure>
+<p><strong>Vấn đề hệ thống không còn là chỉ có bao nhiêu khách hàng.</strong> Câu hỏi đầu tiên cần trả lời là: <strong>trong một giao dịch, mỗi bên có quyền gì, phải làm gì và chịu trách nhiệm tới đâu?</strong></p>
+<h2 id="2-2-cac-thuat-ngu-khong-nam-tren-cung-mot-truc">2.2. Các thuật ngữ không nằm trên cùng một trục</h2>
+<p>Đây là chỗ tài liệu tổng quan thường khiến người học nhầm lẫn. B2C/B2B/C2C mô tả <strong>các bên giao dịch</strong>; D2C mô tả <strong>kênh đưa sản phẩm tới người mua</strong>; 1P/3P mô tả <strong>vai trò của nền tảng đối với người bán</strong>. Chúng không phải sáu lựa chọn loại trừ lẫn nhau.</p>
+<table>
+<thead>
+<tr>
+  <th>Khái niệm</th>
+  <th>Câu hỏi nó trả lời</th>
+  <th>Ví dụ giả định</th>
+  <th>Hàm ý backend nổi bật</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>B2C (Business-to-Consumer)</td>
+  <td>Doanh nghiệp bán cho ai?</td>
+  <td>Hoàng Phone → khách cá nhân</td>
+  <td>Catalog, cart, consumer checkout, refund</td>
+</tr>
+<tr>
+  <td>B2B (Business-to-Business)</td>
+  <td>Doanh nghiệp bán cho ai?</td>
+  <td>Hoàng Phone → công ty mua 100 máy</td>
+  <td>Organization, approver, quote, price tier, credit terms</td>
+</tr>
+<tr>
+  <td>C2C (Consumer-to-Consumer)</td>
+  <td>Ai giao dịch với ai?</td>
+  <td>Cá nhân A bán máy cũ cho cá nhân B</td>
+  <td>Identity/trust, listing moderation, dispute, seller onboarding</td>
+</tr>
+<tr>
+  <td>D2C (Direct-to-Consumer)</td>
+  <td>Thương hiệu có bán trực tiếp tới khách không?</td>
+  <td>Hãng X bán máy trên site của chính hãng</td>
+  <td>Brand-owned pricing, CRM, fulfillment; có thể vẫn là B2C</td>
+</tr>
+<tr>
+  <td>1P Retail (First Party)</td>
+  <td>Nền tảng có tự đứng vai trò người bán?</td>
+  <td>Nền tảng tự bán hàng do mình kinh doanh</td>
+  <td>Own stock, own order liability, centralized fulfillment</td>
+</tr>
+<tr>
+  <td>3P Marketplace (Third Party)</td>
+  <td>Nền tảng có cho bên thứ ba bán?</td>
+  <td>Nhiều seller bán qua cùng một site</td>
+  <td>Seller tenancy, listing, split orders, fees, settlement</td>
+</tr>
+<tr>
+  <td>Hybrid 1P + 3P</td>
+  <td>Nền tảng có vừa tự bán vừa cho seller ngoài bán?</td>
+  <td>Cùng một catalog có hàng 1P và 3P</td>
+  <td>Nhận diện seller, offer selection, nhiều luồng trách nhiệm</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ví dụ về việc nhiều nhãn cùng đúng:</strong> Một hãng bán laptop trực tiếp cho khách cá nhân qua website của hãng vừa là <strong>B2C</strong>, vừa là <strong>D2C</strong>, đồng thời có thể là <strong>1P</strong> đối với website đó. Một nền tảng B2B vẫn có thể vận hành marketplace nhiều nhà cung cấp.</p>
+<h3 id="dropshipping-nam-o-au">Dropshipping nằm ở đâu?</h3>
+<p>Dropshipping chủ yếu mô tả <strong>cách thực hiện đơn hàng</strong>: bên nhận đơn không nhất thiết nắm giữ hàng, supplier có thể giao trực tiếp. Nó không tự quyết định các vai trò B2C/marketplace hay ai là người bán chịu trách nhiệm với khách. Đừng nhìn thấy hàng xuất từ supplier rồi kết luận backend phải là marketplace.</p>
+<h3 id="saas-ban-cong-cu-e-commerce-co-phai-marketplace">SaaS bán công cụ E-commerce có phải marketplace?</h3>
+<p>Một phần mềm cho nhiều merchant tạo website riêng là <strong>commerce-enablement SaaS</strong>. Merchant có thể tự sở hữu khách hàng, checkout và quan hệ thanh toán. Đó khác với một marketplace nơi nhiều seller cùng bán dưới một trải nghiệm mua hàng tổng hợp. Đôi khi một công ty cung cấp cả hai tính năng, nhưng hệ thống vẫn cần phân biệt domain.</p>
+<h2 id="2-3-ma-tran-trach-nhiem-thiet-ke-truoc-khi-viet-entity">2.3. Ma trận trách nhiệm — thiết kế trước khi viết entity</h2>
+<p>Trước khi lập bảng <code>sellers</code>, tôi muốn bạn điền một ma trận cho <strong>một giao dịch cụ thể</strong>.</p>
+<table>
+<thead>
+<tr>
+  <th>Quyết định</th>
+  <th>Single-vendor 1P (giả định)</th>
+  <th>Marketplace 3P (giả định)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Ai đăng sản phẩm?</td>
+  <td>Store admin</td>
+  <td>Seller, có thể chờ platform duyệt</td>
+</tr>
+<tr>
+  <td>Ai quyết định giá niêm yết?</td>
+  <td>Store</td>
+  <td>Seller hoặc quy tắc platform theo hợp đồng</td>
+</tr>
+<tr>
+  <td>Ai sở hữu tồn kho vật lý?</td>
+  <td>Store/đối tác kho của store</td>
+  <td>Từng seller hoặc mạng kho do platform vận hành</td>
+</tr>
+<tr>
+  <td>Ai nhận yêu cầu checkout?</td>
+  <td>Store</td>
+  <td>Platform</td>
+</tr>
+<tr>
+  <td>Ai giữ stock?</td>
+  <td>Inventory của store</td>
+  <td>Inventory theo seller + SKU + warehouse</td>
+</tr>
+<tr>
+  <td>Ai thực hiện giao hàng?</td>
+  <td>Store hoặc 3PL</td>
+  <td>Seller, platform fulfillment hoặc 3PL theo từng offer</td>
+</tr>
+<tr>
+  <td>Ai nhận tiền từ payment provider?</td>
+  <td>Theo tài khoản của store</td>
+  <td>Tùy payment flow: seller trực tiếp hoặc platform nhận rồi chuyển</td>
+</tr>
+<tr>
+  <td>Ai hưởng hoa hồng/fee?</td>
+  <td>Không bắt buộc có</td>
+  <td>Platform theo chính sách từng giao dịch</td>
+</tr>
+<tr>
+  <td>Ai xử lý hoàn tiền?</td>
+  <td>Store</td>
+  <td>Seller/platform/payment provider phối hợp theo thỏa thuận</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lưu ý:</strong> “Ai sở hữu hàng”, “ai xuất hàng”, “ai là merchant of record”, “ai nhận tiền ban đầu” và “ai chịu phí chargeback” có thể là <strong>những chủ thể khác nhau</strong>. Không dùng một boolean <code>isMarketplace</code> để suy ra tất cả trách nhiệm.</p>
+<blockquote>
+<p><strong>Quy tắc thiết kế:</strong> Business ownership → Domain boundaries → Data ownership → API permissions → Payment architecture. Làm ngược lại thường dẫn tới schema thiếu trường và flow xử lý khó sửa.</p>
+</blockquote>
+<h2 id="2-4-chuyen-tu-mot-product-sang-nhieu-offer">2.4. Chuyển từ một Product sang nhiều Offer</h2>
+<h3 id="2-4-1-sai-lam-khi-chi-them-seller-id-vao-products">2.4.1. Sai lầm khi chỉ thêm <code>seller_id</code> vào <code>products</code></h3>
+<p>Trong store 1P, một bảng <code>products(id, name, price, stock)</code> có thể dùng để minh họa. Sang marketplace, hãy giả sử hai seller cùng bán một mẫu điện thoại:</p>
+<ul>
+<li>Seller A: điện thoại màu đen 256 GB, giá 10.000.000đ, còn 8 chiếc, giao từ Hà Nội.</li>
+<li>Seller B: cùng biến thể, giá 9.800.000đ, còn 2 chiếc, giao từ TP.HCM.</li>
+</ul>
+<p>Nếu <code>products.price = 10000000</code> và <code>products.stock = 10</code>, dữ liệu đó thuộc về ai? Cập nhật giá của Seller B có làm thay đổi giá Seller A không? Khách xem đánh giá chung của mẫu điện thoại hay đánh giá riêng chất lượng dịch vụ của Seller B?</p>
+<p>Câu trả lời là bạn đang gộp nhiều khái niệm khác nhau.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-03.svg" alt="Sơ đồ kỹ thuật 03" loading="lazy"><figcaption>Sơ đồ 03 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  P[Canonical Product: Smartphone X] --&gt; V[Variant / SKU: Black 256 GB]
+  V --&gt; OA[Seller Offer A: 10.000.000 VND]
+  V --&gt; OB[Seller Offer B: 9.800.000 VND]
+  OA --&gt; IA[Inventory A: HN / 8]
+  OB --&gt; IB[Inventory B: HCM / 2]
+</pre></details></figcaption></figure>
+<h3 id="2-4-2-phan-biet-bon-oi-tuong">2.4.2. Phân biệt bốn đối tượng</h3>
+<table>
+<thead>
+<tr>
+  <th>Đối tượng</th>
+  <th>Định nghĩa vận hành</th>
+  <th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Canonical Product</td>
+  <td>Danh tính sản phẩm dùng chung trong catalog, nếu nền tảng có product matching</td>
+  <td>Smartphone X</td>
+</tr>
+<tr>
+  <td>Product Variant / SKU</td>
+  <td>Biến thể cần định danh</td>
+  <td>Black / 256 GB</td>
+</tr>
+<tr>
+  <td>Seller Listing / Offer</td>
+  <td>Lời chào bán cụ thể của seller với giá/chính sách/trạng thái</td>
+  <td>Seller A chào giá 10 triệu</td>
+</tr>
+<tr>
+  <td>Seller Inventory</td>
+  <td>Khả năng cung cấp của seller theo variant/kho</td>
+  <td>Seller A còn 8 tại HN</td>
+</tr>
+</tbody>
+</table>
+<p>Không phải mọi marketplace đều có canonical product; với hàng thủ công hoặc đồ cũ, <strong>listing có thể chính là mặt hàng độc nhất</strong>. Hãy thiết kế theo domain thực tế, không ép mọi loại hàng vào một catalog matching model.</p>
+<h3 id="2-4-3-ai-uoc-sua-truong-nao">2.4.3. Ai được sửa trường nào?</h3>
+<p>Seller A chỉ được sửa offer của mình. Platform có thể chuẩn hóa tên thương hiệu và danh mục. Nhân viên kho chỉ cập nhật inventory thuộc kho được giao. Customer chỉ được đọc những offer đang được phép hiển thị.</p>
+<pre><code class="language-text">PATCH /seller/offers/{offerId}
+Authorization check:
+  authenticatedSellerId == offer.sellerId
+AND seller.status == APPROVED
+AND offer editable in current state
+</code></pre>
+<p><strong>Không tin <code>sellerId</code> người dùng gửi trong JSON để xác định quyền.</strong> Backend phải lấy actor từ danh tính đã xác thực và kiểm tra ownership trên bản ghi thực tế.</p>
+<h2 id="2-5-single-seller-checkout-va-multi-seller-checkout-khac-nhau-o-au">2.5. Single-seller checkout và multi-seller checkout khác nhau ở đâu?</h2>
+<p>Giỏ hàng sau có một khách nhưng hai seller:</p>
+<pre><code class="language-json">{
+  &quot;customerId&quot;: &quot;U-101&quot;,
+  &quot;items&quot;: [
+    {&quot;offerId&quot;: &quot;OFFER-A-01&quot;, &quot;sellerId&quot;: &quot;SELLER-A&quot;, &quot;quantity&quot;: 1},
+    {&quot;offerId&quot;: &quot;OFFER-B-09&quot;, &quot;sellerId&quot;: &quot;SELLER-B&quot;, &quot;quantity&quot;: 2}
+  ]
+}
+</code></pre>
+<blockquote>
+<p><code>sellerId</code> trong payload trên chỉ để minh họa; backend phải tự resolve và xác minh seller sở hữu offer, không chấp nhận client tự quyết định.</p>
+</blockquote>
+<p>Trong store 1P, bạn có thể hình dung một order, một tổng tiền, một shipment (dù thực tế store cũng có thể ship nhiều kiện). Với marketplace, <strong>một lần checkout không đồng nghĩa một seller order hoặc một lần giao hàng</strong>.</p>
+<h3 id="2-5-1-thiet-ke-khai-niem-order-group-va-seller-order">2.5.1. Thiết kế khái niệm order group và seller order</h3>
+<figure class="diagram"><img src="assets/chapter-02/diagram-04.svg" alt="Sơ đồ kỹ thuật 04" loading="lazy"><figcaption>Sơ đồ 04 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  C[Customer checkout once] --&gt; G[Order Group OG-1001]
+  G --&gt; A[Seller Order SO-A: Seller A]
+  G --&gt; B[Seller Order SO-B: Seller B]
+  A --&gt; I1[Order item A]
+  B --&gt; I2[Order item B]
+  A --&gt; SH1[Shipment A]
+  B --&gt; SH2[Shipment B]
+  G --&gt; PI[Payment attempt for total]
+</pre></details></figcaption></figure>
+<ul>
+<li><strong>Order Group</strong>: đơn tổng hợp mà khách nhìn thấy ở checkout.</li>
+<li><strong>Seller Order</strong>: tập dòng hàng của một seller với lifecycle thực hiện tương đối độc lập.</li>
+<li><strong>Order Item</strong>: snapshot mặt hàng, giá và số lượng tại thời điểm chốt.</li>
+<li><strong>Shipment</strong>: một lần/kiện vận chuyển; một seller order có thể cần nhiều shipment.</li>
+<li><strong>Payment</strong>: có thể gắn với order group hoặc từng seller order tùy mô hình thanh toán.</li>
+</ul>
+<p>Tên thực tế có thể là <code>orders</code> + <code>sub_orders</code>, <code>purchase</code> + <code>fulfillment_order</code>, hoặc <code>order_groups</code> + <code>seller_orders</code>. <strong>Tên không quan trọng bằng invariant và quan hệ.</strong></p>
+<h3 id="2-5-2-vi-sao-khong-luu-seller-id-truc-tiep-trong-bang-orders">2.5.2. Vì sao không lưu <code>seller_id</code> trực tiếp trong bảng <code>orders</code>?</h3>
+<p>Vì một Order Group nhiều seller <strong>không có đúng một seller_id</strong>. Nếu ép lưu một seller, bạn sẽ mất thông tin hoặc buộc mỗi lần checkout thành nhiều giao dịch thanh toán riêng.</p>
+<p>Một hệ thống vẫn có thể chỉ dùng một bảng <code>orders</code> với <code>parent_order_id</code>; điều đó khả thi, nhưng cần làm rõ row nào là group và row nào là seller order, unique constraints và state transition tương ứng. Với mục đích học, dùng hai bảng là cách thể hiện ranh giới rõ ràng hơn.</p>
+<h3 id="2-5-3-partial-failure-la-trang-thai-binh-thuong">2.5.3. Partial failure là trạng thái bình thường</h3>
+<p>Nếu Seller A hết hàng nhưng Seller B còn hàng, hệ thống cần quy định: <strong>rollback cả checkout</strong> hay <strong>cho phép chỉ mua các offer hợp lệ với sự đồng ý của khách</strong>? Không có một đáp án bắt buộc cho mọi sản phẩm. Nhưng quyết định này cần đi trước việc viết transaction.</p>
+<h2 id="2-6-dong-tien-marketplace-ba-loai-so-tien-khong-uoc-tron">2.6. Dòng tiền marketplace — ba loại số tiền không được trộn</h2>
+<p>Có ba lớp khác nhau:</p>
+<ol>
+<li><strong>Buyer payment:</strong> khách phải trả bao nhiêu.</li>
+<li><strong>Seller payable:</strong> sau khi áp dụng quy tắc phí, hoàn tiền, hỗ trợ, người bán được nhận bao nhiêu.</li>
+<li><strong>Platform revenue / costs:</strong> nền tảng hưởng bao nhiêu và chịu phí nào.</li>
+</ol>
+<h3 id="2-6-1-vi-du-tinh-tien-minh-hoa">2.6.1. Ví dụ tính tiền minh họa</h3>
+<p>Một order group gồm:</p>
+<table>
+<thead>
+<tr>
+  <th>Thành phần</th>
+  <th style="text-align:right">Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Hàng của Seller A</td>
+  <td style="text-align:right">2.000.000đ</td>
+</tr>
+<tr>
+  <td>Hàng của Seller B</td>
+  <td style="text-align:right">1.000.000đ</td>
+</tr>
+<tr>
+  <td>Gross merchandise subtotal</td>
+  <td style="text-align:right">3.000.000đ</td>
+</tr>
+<tr>
+  <td>Platform commission giả định</td>
+  <td style="text-align:right">10% mỗi seller</td>
+</tr>
+<tr>
+  <td>Seller A payable trước các điều chỉnh khác</td>
+  <td style="text-align:right">1.800.000đ</td>
+</tr>
+<tr>
+  <td>Seller B payable trước các điều chỉnh khác</td>
+  <td style="text-align:right">900.000đ</td>
+</tr>
+<tr>
+  <td>Platform commission trước các chi phí khác</td>
+  <td style="text-align:right">300.000đ</td>
+</tr>
+</tbody>
+</table>
+<p>Ở ví dụ <strong>không tính phí giao hàng, voucher, thuế, payment fee hoặc hoàn tiền</strong>. Đây là phép tính nghiệp vụ giả định, không phải công thức hạch toán chung cho mọi thị trường.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-05.svg" alt="Sơ đồ kỹ thuật 05" loading="lazy"><figcaption>Sơ đồ 05 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  B[Buyer pays 3.000.000] --&gt; P[Payment flow agreed with provider]
+  P --&gt; A[Seller A payable 1.800.000]
+  P --&gt; S[Seller B payable 900.000]
+  P --&gt; F[Platform commission 300.000]
+</pre></details></figcaption></figure>
+<p>Nếu platform tự tài trợ voucher 100.000đ mà cam kết seller vẫn nhận nguyên số như trên, số khách trả còn 2.900.000đ và phần còn lại dành cho platform trước các chi phí khác còn 200.000đ. <strong>Ai tài trợ voucher là dữ liệu nghiệp vụ bắt buộc</strong>; cùng mức giảm giá hiển thị nhưng quyền lợi của seller có thể khác.</p>
+<h3 id="2-6-2-charge-khac-transfer-va-payout">2.6.2. Charge khác transfer và payout</h3>
+<ul>
+<li><strong>Charge/payment:</strong> hành động thu tiền của khách theo provider.</li>
+<li><strong>Transfer:</strong> luân chuyển quỹ giữa các tài khoản liên kết theo mô hình provider hỗ trợ.</li>
+<li><strong>Payout:</strong> chuyển tiền từ số dư tại provider ra tài khoản ngân hàng/đích nhận của seller.</li>
+<li><strong>Settlement:</strong> đối soát/ghi nhận số tiền phải thanh toán cho các bên theo một kỳ hoặc quy trình.</li>
+</ul>
+<p><code>payment.status = PAID</code> <strong>không suy ra</strong> <code>seller_payout.status = COMPLETED</code>.</p>
+<p>Stripe Connect mô tả nhiều mô hình như <strong>direct charges, destination charges, separate charges and transfers</strong>. Mô hình chuyển tiền tới nhiều connected accounts là tình huống được Stripe tài liệu hóa; lựa chọn cụ thể phụ thuộc nơi hoạt động và quy tắc của provider. [S1][S2]</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-06.svg" alt="Sơ đồ kỹ thuật 06" loading="lazy"><figcaption>Sơ đồ 06 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>sequenceDiagram
+  participant B as Buyer
+  participant P as Platform
+  participant G as Payment Provider
+  participant A as Seller A
+  participant C as Seller B
+  B-&gt;&gt;P: Checkout order group
+  P-&gt;&gt;G: Create payment attempt
+  G--&gt;&gt;P: Verified payment result
+  P-&gt;&gt;P: Record seller payable &amp; fees
+  P-&gt;&gt;G: Request eligible transfers
+  G--&gt;&gt;A: Credit seller account A
+  G--&gt;&gt;C: Credit seller account B
+  Note over P,G: Payout to bank is a separate lifecycle
+</pre></details></figcaption></figure>
+<p>Sơ đồ là <strong>mô hình chức năng giả định</strong>, không phải hợp đồng API của một payment provider cụ thể.</p>
+<h3 id="2-6-3-refund-mot-phan-lam-thay-oi-ieu-gi">2.6.3. Refund một phần làm thay đổi điều gì?</h3>
+<p>Khách chỉ trả lại hàng của Seller A. Hệ thống cần:</p>
+<ul>
+<li>Xác định item, số lượng và amount đủ điều kiện refund.</li>
+<li>Điều chỉnh seller payable hoặc thu hồi khoản đã chuyển theo cơ chế được phép.</li>
+<li>Xác định phí platform có hoàn lại hay không theo hợp đồng.</li>
+<li>Xử lý phí thanh toán, phí giao hàng, voucher theo quy tắc được phê duyệt.</li>
+<li>Lưu audit trail: <strong>không sửa mất dấu khoản thu ban đầu</strong>.</li>
+</ul>
+<p>Cơ chế charge/dispute/refund phụ thuộc loại charge; tài liệu Stripe phân biệt trách nhiệm platform/seller theo payment architecture. [S3]</p>
+<h3 id="2-6-4-marketplace-khac-vi-ien-tu">2.6.4. Marketplace khác ví điện tử</h3>
+<p>Một bảng <code>seller_balance</code> <strong>không đồng nghĩa</strong> bạn có thể tự ý giữ và di chuyển tiền thật như ngân hàng. Nó có thể chỉ là <strong>sổ cái nội bộ ghi nhận nghĩa vụ phải trả</strong>. Chức năng thu hộ, giữ tiền, chuyển tiền, KYC và payout phải phù hợp khả năng/tính hợp lệ của đối tác thanh toán và quy định áp dụng. Không tự triển khai “ví tiền” từ CRUD balance rồi coi là hoàn chỉnh.</p>
+<h2 id="2-7-vi-sao-marketplace-can-seller-onboarding-va-tenant-isolation">2.7. Vì sao Marketplace cần seller onboarding và tenant isolation?</h2>
+<p>Store 1P chủ yếu quản lý customer, staff, admin. Marketplace thêm một actor quan trọng: <strong>seller</strong>. Seller có thể có nhiều nhân viên, nhiều kho, nhiều offer, nhiều payment/settlement record và nhiều order.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-07.svg" alt="Sơ đồ kỹ thuật 07" loading="lazy"><figcaption>Sơ đồ 07 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  P[Platform] --&gt; A[Seller A]
+  P --&gt; B[Seller B]
+  A --&gt; AU[Seller A users]
+  A --&gt; AO[A offers / orders / inventory]
+  B --&gt; BU[Seller B users]
+  B --&gt; BO[B offers / orders / inventory]
+  AU -. X .-&gt; BO
+  BU -. X .-&gt; AO
+</pre></details></figcaption></figure>
+<h3 id="2-7-1-onboarding-state-machine">2.7.1. Onboarding state machine</h3>
+<pre><code class="language-text">REGISTERED → UNDER_REVIEW → APPROVED → ACTIVE
+                         ↘ REJECTED
+ACTIVE → SUSPENDED → ACTIVE (if reapproved)
+</code></pre>
+<p>Seller đăng ký không tự động có quyền xuất bản offer hoặc nhận thanh toán. Thực tế còn cần xác minh thông tin theo provider và khu vực vận hành.</p>
+<h3 id="2-7-2-data-isolation-la-invariant-khong-phai-mot-cau-where-tuy-hung">2.7.2. Data isolation là invariant, không phải một câu WHERE tùy hứng</h3>
+<pre><code class="language-sql">SELECT *
+FROM seller_orders
+WHERE seller_id = :authenticated_seller_id
+ORDER BY created_at DESC;
+</code></pre>
+<p>Dữ liệu của Seller B không được trả về cho Seller A dù A thay đổi URL từ <code>/seller/orders/1001</code> sang <code>/seller/orders/1002</code>.</p>
+<p>Nên có các lớp bảo vệ:</p>
+<ul>
+<li>AuthN: người gọi là ai?</li>
+<li>AuthZ: actor có quyền đối với seller này không?</li>
+<li>Ownership check: bản ghi này có thuộc seller được phép không?</li>
+<li>Audit log: ai sửa giá, kho, trạng thái đơn, bank payout settings?</li>
+<li>Tests: truy cập chéo seller phải bị từ chối.</li>
+</ul>
+<p>PostgreSQL Row-Level Security có thể là một lớp phòng vệ bổ sung tùy kiến trúc; không thay thế hoàn toàn authorization tại application.</p>
+<h2 id="2-8-schema-tham-khao-cho-marketplace-khong-bat-au-bang-microservices">2.8. Schema tham khảo cho Marketplace — không bắt đầu bằng microservices</h2>
+<p>Bạn vẫn có thể xây marketplace MVP bằng một Spring Boot modular monolith và PostgreSQL. Khác biệt đầu tiên cần xử lý là <strong>mô hình nghiệp vụ</strong>, không nhất thiết là số lượng service.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-08.svg" alt="Sơ đồ kỹ thuật 08" loading="lazy"><figcaption>Sơ đồ 08 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>erDiagram
+  SELLERS ||--o{ SELLER_OFFERS : owns
+  PRODUCTS ||--o{ PRODUCT_VARIANTS : has
+  PRODUCT_VARIANTS ||--o{ SELLER_OFFERS : listed_as
+  SELLER_OFFERS ||--o{ SELLER_INVENTORY : stocked_in
+  CUSTOMERS ||--o{ ORDER_GROUPS : checks_out
+  ORDER_GROUPS ||--o{ SELLER_ORDERS : splits_into
+  SELLERS ||--o{ SELLER_ORDERS : fulfills
+  SELLER_ORDERS ||--o{ ORDER_ITEMS : contains
+  SELLER_ORDERS ||--o{ SHIPMENTS : dispatched_as
+  ORDER_GROUPS ||--o{ PAYMENT_ATTEMPTS : charged_by
+  SELLER_ORDERS ||--o{ SELLER_PAYABLES : accrues
+</pre></details></figcaption></figure>
+<p>Schema SQL tối giản dưới đây chỉ minh họa <strong>ownership và ranh giới order</strong>, không phải migration production hoàn chỉnh:</p>
+<pre><code class="language-sql">CREATE TABLE sellers (
+    id BIGINT PRIMARY KEY,
+    name TEXT NOT NULL,
+    status VARCHAR(32) NOT NULL
+);
+
+CREATE TABLE products (
+    id BIGINT PRIMARY KEY,
+    title TEXT NOT NULL
+);
+
+CREATE TABLE product_variants (
+    id BIGINT PRIMARY KEY,
+    product_id BIGINT NOT NULL REFERENCES products(id),
+    variant_code TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE seller_offers (
+    id BIGINT PRIMARY KEY,
+    seller_id BIGINT NOT NULL REFERENCES sellers(id),
+    variant_id BIGINT NOT NULL REFERENCES product_variants(id),
+    price_vnd BIGINT NOT NULL CHECK (price_vnd &gt;= 0),
+    status VARCHAR(32) NOT NULL
+);
+
+CREATE TABLE order_groups (
+    id BIGINT PRIMARY KEY,
+    customer_id BIGINT NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    total_vnd BIGINT NOT NULL CHECK (total_vnd &gt;= 0)
+);
+
+CREATE TABLE seller_orders (
+    id BIGINT PRIMARY KEY,
+    order_group_id BIGINT NOT NULL REFERENCES order_groups(id),
+    seller_id BIGINT NOT NULL REFERENCES sellers(id),
+    status VARCHAR(32) NOT NULL,
+    UNIQUE (id, seller_id)
+);
+
+CREATE TABLE order_items (
+    id BIGINT PRIMARY KEY,
+    seller_order_id BIGINT NOT NULL REFERENCES seller_orders(id),
+    offer_id BIGINT NOT NULL REFERENCES seller_offers(id),
+    product_title_snapshot TEXT NOT NULL,
+    unit_price_vnd BIGINT NOT NULL CHECK (unit_price_vnd &gt;= 0),
+    quantity INT NOT NULL CHECK (quantity &gt; 0)
+);
+</code></pre>
+<p><strong>Điểm thiết kế cần chú ý:</strong> <code>order_items.offer_id</code> giúp truy ngược offer gốc, nhưng <code>product_title_snapshot</code> và <code>unit_price_vnd</code> bảo vệ dữ liệu giao dịch khi seller đổi listing. Bảng inventory phải chứa seller/offer + warehouse + stock state nếu bạn cho phép nhiều kho. Với tiền, có thể dùng số nguyên đơn vị tiền nhỏ nhất được provider hỗ trợ hoặc <code>NUMERIC</code> theo currency; ví dụ dùng <code>BIGINT</code> VND để tránh float trong bài thực hành.</p>
+<p>Để bảo đảm <code>order_items.offer_id</code> thực sự thuộc seller của <code>seller_order_id</code>, có thể xây composite foreign key/schema chặt hơn hoặc validate nhất quán bằng domain service và test. Schema minh họa chưa thực thi invariant này ở DB; <strong>đừng xem nó như dữ liệu an toàn tuyệt đối</strong>.</p>
+<h3 id="api-toi-thieu">API tối thiểu</h3>
+<pre><code class="language-text">GET    /products/{productId}
+GET    /products/{productId}/offers
+POST   /checkout
+GET    /orders/{orderGroupId}
+GET    /seller/orders
+PATCH  /seller/offers/{offerId}
+POST   /seller/orders/{sellerOrderId}/confirm
+POST   /seller/orders/{sellerOrderId}/shipments
+</code></pre>
+<p><strong>Phân quyền bằng actor + ownership</strong>, không chỉ phân theo HTTP path hoặc role <code>SELLER</code> chung.</p>
+<h2 id="2-9-sequence-mot-checkout-hai-seller-hai-lan-giao-hang">2.9. Sequence: một checkout, hai seller, hai lần giao hàng</h2>
+<figure class="diagram"><img src="assets/chapter-02/diagram-09.svg" alt="Sơ đồ kỹ thuật 09" loading="lazy"><figcaption>Sơ đồ 09 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>sequenceDiagram
+  participant U as Customer
+  participant API as Checkout API
+  participant DB as Database
+  participant Pay as Payment Provider
+  participant A as Seller A
+  participant B as Seller B
+  U-&gt;&gt;API: Checkout cart A + B
+  API-&gt;&gt;DB: Validate offers and reserve each seller inventory
+  DB--&gt;&gt;API: Reservations committed + order group + seller orders
+  API--&gt;&gt;U: Order group PENDING_PAYMENT
+  API-&gt;&gt;Pay: Create payment attempt
+  Pay--&gt;&gt;API: Verified outcome / webhook
+  API-&gt;&gt;DB: Record payment outcome idempotently
+  API--&gt;&gt;A: Seller order A available for fulfillment
+  API--&gt;&gt;B: Seller order B available for fulfillment
+  A--&gt;&gt;API: Shipment A status
+  B--&gt;&gt;API: Shipment B status
+  API--&gt;&gt;U: Consolidated order view
+</pre></details></figcaption></figure>
+<p>Sơ đồ cố tình không đặt lệnh gọi payment provider bên trong một DB transaction kéo dài. Khi provider timeout, checkout phải có trạng thái có thể khôi phục hoặc đối soát, không tự động coi tất cả là thất bại.</p>
+<h3 id="cau-hoi-ve-trang-thai-tong-hop">Câu hỏi về trạng thái tổng hợp</h3>
+<ul>
+<li>Seller A đã giao, Seller B đang chuẩn bị: order group là <code>PARTIALLY_FULFILLED</code> hay <code>IN_PROGRESS</code>?</li>
+<li>Seller A hủy vì hết hàng, Seller B đã giao: refund phần nào, phí ship tính lại không?</li>
+<li>Một seller order được chia thành hai shipment: seller order <code>SHIPPED</code> khi một kiện rời kho hay khi tất cả rời kho?</li>
+</ul>
+<p>Không gộp bừa <code>order_group.status = min(child_status)</code> hoặc <code>max(child_status)</code>. Hãy định nghĩa <strong>state aggregation policy</strong> bằng business rule rõ ràng, có test cho các tổ hợp trạng thái.</p>
+<h2 id="2-10-business-model-decisions-system-design-consequences">2.10. Business-model decisions → System-design consequences</h2>
+<table>
+<thead>
+<tr>
+  <th>Quyết định kinh doanh</th>
+  <th>Hệ quả domain/data</th>
+  <th>Hệ quả hệ thống</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mở third-party sellers</td>
+  <td>Sellers, offers, seller inventory</td>
+  <td>Seller onboarding, authZ theo seller</td>
+</tr>
+<tr>
+  <td>Cho nhiều seller cùng SKU</td>
+  <td>Canonical variant + nhiều offer</td>
+  <td>Offer selection, price competition, offer identity</td>
+</tr>
+<tr>
+  <td>Một checkout nhiều seller</td>
+  <td>Order group + seller orders</td>
+  <td>Partial cancellation/shipment/refund</td>
+</tr>
+<tr>
+  <td>Platform thu hoa hồng</td>
+  <td>Commission rules + payable ledger</td>
+  <td>Reconciliation, fee adjustment</td>
+</tr>
+<tr>
+  <td>Seller tự giao hàng</td>
+  <td>Shipment ownership / seller events</td>
+  <td>Webhook/integration, stale delivery status</td>
+</tr>
+<tr>
+  <td>Platform giữ stock hộ seller</td>
+  <td>Warehouse location + stock ownership</td>
+  <td>Allocation, transfers, physical vs book inventory</td>
+</tr>
+<tr>
+  <td>B2B bán theo hợp đồng</td>
+  <td>Organization, buyer roles, quotes</td>
+  <td>Approval workflow, payment terms, credit limits</td>
+</tr>
+<tr>
+  <td>Cho hàng đã qua sử dụng</td>
+  <td>Listing-specific condition and identity</td>
+  <td>Moderation, trust, dispute, no forced SKU matching</td>
+</tr>
+</tbody>
+</table>
+<p>Một anti-pattern thường gặp là quyết định công nghệ trước: “Dùng Kafka và 12 microservices cho giống sàn lớn.” Bạn có thể gặp 12 service nhưng <strong>chưa phân biệt seller order với buyer order</strong>. Đó không phải vấn đề scale; đó là domain sai.</p>
+<h2 id="2-11-b2b-khi-nguoi-mua-khong-con-la-mot-ca-nhan">2.11. B2B: khi người mua không còn là một cá nhân</h2>
+<p>B2C thường có customer đăng nhập và tự quyết định checkout. Trong B2B, công ty mua hàng có thể có người tạo yêu cầu, quản lý duyệt, nhân viên tài chính xác nhận hóa đơn và điều khoản thanh toán sau 30 ngày.</p>
+<figure class="diagram"><img src="assets/chapter-02/diagram-10.svg" alt="Sơ đồ kỹ thuật 10" loading="lazy"><figcaption>Sơ đồ 10 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  E[Employee creates purchase request] --&gt; M[Manager approval]
+  M --&gt; Q[Quote / contract pricing]
+  Q --&gt; PO[Purchase Order]
+  PO --&gt; F[Fulfillment]
+  F --&gt; INV[Invoice]
+  INV --&gt; T[Payment per agreed terms]
+</pre></details></figcaption></figure>
+<p>Những domain bổ sung có thể là:</p>
+<ul>
+<li><code>organization</code>, <code>organization_members</code>, <code>buyer_roles</code>.</li>
+<li><code>quotes</code>, <code>quote_lines</code>, <code>price_lists</code>, <code>volume_tiers</code>.</li>
+<li><code>purchase_orders</code>, <code>approval_steps</code>, <code>credit_terms</code>.</li>
+<li><code>invoices</code>, <code>receivables</code>, <code>payment_allocations</code>.</li>
+</ul>
+<p>B2B không mặc định phải có tất cả; mô hình mỗi doanh nghiệp khác nhau. Điểm cốt lõi: <strong>đơn vị mua là một tổ chức có quy trình phê duyệt, không đơn thuần là user với giỏ hàng lớn hơn</strong>.</p>
+<h2 id="2-12-failure-scenarios-chuyen-oi-business-model-that-bai-nhu-the-nao">2.12. Failure scenarios: chuyển đổi business model thất bại như thế nào?</h2>
+<table>
+<thead>
+<tr>
+  <th>Failure scenario</th>
+  <th>Root cause thường gặp</th>
+  <th>Điều cần bảo vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Seller A sửa offer của Seller B</td>
+  <td>API chỉ kiểm tra role SELLER</td>
+  <td>Ownership/tenant isolation</td>
+</tr>
+<tr>
+  <td>Một seller hủy làm cả đơn group thành CANCELLED</td>
+  <td>Gộp trạng thái cha-con sai</td>
+  <td>Aggregation policy</td>
+</tr>
+<tr>
+  <td>Seller đổi giá làm đơn cũ đổi theo</td>
+  <td>Order item chỉ join giá hiện tại</td>
+  <td>Price snapshot</td>
+</tr>
+<tr>
+  <td>Refund một item làm hoàn toàn bộ checkout</td>
+  <td>Refund chỉ gắn group</td>
+  <td>Refund granularity theo item/amount</td>
+</tr>
+<tr>
+  <td>Platform chuyển seller hai lần</td>
+  <td>Retry thiếu idempotency</td>
+  <td>Transfer dedup + reconciliation</td>
+</tr>
+<tr>
+  <td>Seller nhận tiền dù kiện chưa đủ điều kiện</td>
+  <td>Dùng PAID làm trigger payout duy nhất</td>
+  <td>Settlement eligibility</td>
+</tr>
+<tr>
+  <td>Một offer được bán vượt số lượng</td>
+  <td>Inventory gộp theo canonical product</td>
+  <td>Seller/offer/warehouse stock invariants</td>
+</tr>
+<tr>
+  <td>Seller bị khóa vẫn gọi API bán hàng</td>
+  <td>Chỉ kiểm tra token không kiểm tra status</td>
+  <td>Seller lifecycle authZ</td>
+</tr>
+<tr>
+  <td>Đồng bộ SKU trùng tên làm bán nhầm hàng</td>
+  <td>Matching bằng text hoặc slug</td>
+  <td>Stable product/variant identifiers</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-13-engineering-lab-nang-cap-hoang-phone-thanh-marketplace">2.13. Engineering Lab — Nâng cấp Hoàng Phone thành marketplace</h2>
+<h3 id="bai-toan">Bài toán</h3>
+<p>Bạn có một Spring Boot modular monolith từ chương 01. Nhiệm vụ: cho hai seller đăng bán cùng một điện thoại, khách checkout một lần, từng seller giao riêng và platform thu commission 10% (chỉ để thực hành, bỏ qua thuế/phí khác).</p>
+<p><strong>Acceptance criteria</strong>:</p>
+<ol>
+<li>Seller A không đọc/sửa order hay offer của Seller B.</li>
+<li>Hai offer cùng variant có hai mức giá và inventory riêng.</li>
+<li>Checkout tạo đúng một order group và hai seller orders khi giỏ có hai seller.</li>
+<li>Order item giữ giá snapshot dù offer sau đó đổi giá.</li>
+<li>Seller A <code>SHIPPED</code>, Seller B <code>PENDING</code> không tự biến order group thành <code>DELIVERED</code>.</li>
+<li>Payment được xử lý bằng idempotency key; không tạo tác động tài chính trùng khi nhận lại webhook.</li>
+<li>Refund một seller order không hoàn nhầm seller order còn lại.</li>
+<li>Seller phải đủ điều kiện hoạt động mới được công khai offer.</li>
+</ol>
+<h3 id="lab-a-ma-tran-trach-nhiem">Lab A — Ma trận trách nhiệm</h3>
+<p>Điền cho từng vai trò: customer, seller, platform operator, payment provider, carrier: ai <strong>được ghi giá</strong>, ai <strong>giữ stock</strong>, ai <strong>xác nhận giao hàng</strong>, ai <strong>xử lý refund</strong>. Viết rõ những phần tùy hợp đồng.</p>
+<h3 id="lab-b-thiet-ke-database">Lab B — Thiết kế database</h3>
+<p>Từ các bảng <code>products</code>, <code>orders</code>, <code>order_items</code> của chương 01, thiết kế migration sang <code>seller_offers</code>, <code>seller_orders</code>, <code>seller_inventory</code>. Không làm mất order history hoặc thay giá đơn cũ.</p>
+<h3 id="lab-c-viet-api-authorization-tests">Lab C — Viết API authorization tests</h3>
+<pre><code class="language-text">Given Seller A owns offer 101
+When Seller B PATCH /seller/offers/101
+Then 403 (or 404 masking existence, per API policy)
+And original offer stays unchanged
+</code></pre>
+<h3 id="lab-d-simulate-partial-cancellation">Lab D — Simulate partial cancellation</h3>
+<p>Seller A hủy do hết hàng sau khi Seller B đã đóng gói. Hãy mô tả state transition, inventory release, refund amount và những việc không được phép rollback ngược với Seller B.</p>
+<h3 id="lab-e-commission-arithmetic">Lab E — Commission arithmetic</h3>
+<p>Cart A=2.000.000, B=1.000.000, platform fee=10%, voucher platform-funded=100.000. Tính buyer paid, seller payable, platform amount trước payment fee/tax/shipping. Sau đó đổi voucher thành seller-funded để quan sát trách nhiệm thay đổi.</p>
+<p><strong>Đáp án tham khảo Lab E (platform-funded):</strong> Buyer paid 2.900.000; seller payables 1.800.000 + 900.000 = 2.700.000; phần platform còn 200.000 trước các chi phí khác. Với seller-funded voucher, kết quả phụ thuộc <strong>quy tắc phân bổ voucher theo item/seller và thứ tự tính commission</strong>; phải xác định policy trước khi tính.</p>
+<h2 id="knowledge-map">Knowledge Map</h2>
+<figure class="diagram"><img src="assets/chapter-02/diagram-11.svg" alt="Sơ đồ kỹ thuật 11" loading="lazy"><figcaption>Sơ đồ 11 · SVG offline · <details><summary>Xem mã Mermaid</summary><pre>flowchart TD
+  M[Business Model] --&gt; R[Who sells / fulfills / gets paid?]
+  R --&gt; O[Ownership &amp; Authorization]
+  R --&gt; C[Catalog / Offer / Inventory]
+  R --&gt; OG[Order Group / Seller Orders]
+  R --&gt; P[Payment / Payable / Settlement]
+  O --&gt; DB[Database Design]
+  C --&gt; DB
+  OG --&gt; DB
+  P --&gt; D[Distributed Transaction &amp; Reconciliation]
+  OG --&gt; S[Partial Fulfillment / Refund]
+</pre></details></figcaption></figure>
+<h2 id="key-takeaways">Key Takeaways</h2>
+<ol>
+<li><strong>B2B/B2C/C2C, D2C và 1P/3P là các trục phân loại khác nhau.</strong> Đừng chọn schema dựa trên một nhãn marketing.</li>
+<li>Marketplace là bài toán <strong>đa chủ thể và ownership</strong>, không chỉ “website có nhiều sản phẩm”.</li>
+<li>Product, variant, offer và inventory cần được phân biệt; cùng SKU có thể có nhiều seller offer và tồn kho khác nhau.</li>
+<li>Một checkout có thể tạo một order group và nhiều seller order; giao hàng, refund, payout có thể diễn ra không đồng thời.</li>
+<li><code>PAID</code> không có nghĩa <code>DELIVERED</code>; <code>DELIVERED</code> không có nghĩa tiền đã <code>PAYOUT_COMPLETED</code>.</li>
+<li>Seller authorization và dữ liệu chéo tenant là <strong>business invariant</strong>, không phải chi tiết UI.</li>
+<li>Hãy làm đúng domain trong modular monolith trước; microservices, message broker và distributed transactions chỉ xuất hiện khi bài toán cần.</li>
+</ol>
+<hr />
+<h2 id="tai-lieu-tham-khao-va-gioi-han-ap-dung">Tài liệu tham khảo và giới hạn áp dụng</h2>
+<ul>
+<li><strong>[S1] Stripe Connect — nền tảng/marketplace, các payment flows và payouts:</strong> <a href="https://stripe.com/connect">https://stripe.com/connect</a></li>
+<li><strong>[S2] Stripe Docs — Separate charges and transfers:</strong> <a href="https://docs.stripe.com/connect/separate-charges-and-transfers">https://docs.stripe.com/connect/separate-charges-and-transfers</a></li>
+<li><strong>[S3] Stripe — Marketplace payment processing guide (updated 2026-05-05):</strong> <a href="https://stripe.com/resources/more/marketplace-payment-processing-apis">https://stripe.com/resources/more/marketplace-payment-processing-apis</a></li>
+<li><strong>[S4] AWS — Guidance for Third-Party Marketplace on AWS:</strong> <a href="https://docs.aws.amazon.com/solutions/third-party-marketplace-on-aws/">https://docs.aws.amazon.com/solutions/third-party-marketplace-on-aws/</a></li>
+</ul>
+<p>Tài liệu bên trên được dùng để kiểm chứng <strong>khái niệm marketplace, seller fulfillment, luồng tiền nhiều bên</strong>. Ví dụ schema, amount, state machine và quyết định domain trong chương là mô phỏng để học thiết kế, không phải cam kết rằng một provider hay một quốc gia hỗ trợ tất cả các luồng trong ví dụ.</p>
+<p><strong>Chương tiếp theo:</strong> Chapter 03 — Domain Modeling: Product, SKU, Offer, Inventory, Cart, Order, Payment và ranh giới trách nhiệm giữa chúng.</p>
+<div class="foot">Inside E-commerce · Volume 1 · Chapter 02 · Bản đọc offline. Các sơ đồ SVG lưu kèm thư mục assets/chapter-02.</div></article></main><button class="mobile-toggle" onclick="document.body.classList.toggle('open')">☰ Mục lục</button><script>document.querySelectorAll('nav a').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('open')));</script></body></html>

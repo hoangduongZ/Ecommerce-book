@@ -1,0 +1,940 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><title>Inside E-commerce · Chương 04 — Product & Pricing Engineering</title><style>
+:root{--bg:#edf3f8;--paper:#fff;--ink:#172f44;--muted:#597186;--accent:#17609e;--line:#d5e1eb;--nav:#142b3f;--code:#112638;--codeink:#e8f6ff}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font:16px/1.78 "Noto Sans",system-ui,sans-serif}
+nav{position:fixed;inset:0 auto 0 0;width:308px;background:var(--nav);padding:28px 18px 48px;overflow-y:auto;box-shadow:2px 0 20px #0d26361a;z-index:10}
+nav strong{color:#fff;display:block;letter-spacing:.12em;font-size:13px;margin:4px 10px}nav small{display:block;margin:8px 10px 20px;color:#b9d1df;line-height:1.7}
+nav input{width:100%;border-radius:9px;padding:10px 11px;border:1px solid #42617a;background:#1d3b53;color:white;margin-bottom:13px}nav input::placeholder{color:#a9c2d5}
+nav a{display:block;color:#c6d9e7;text-decoration:none;line-height:1.5;font-size:12px;padding:7px 10px;border-radius:7px}nav a:hover,nav a.active{background:#244b68;color:white}nav a.h2{font-weight:700;color:#ecf6fe;margin-top:4px}nav a.h3{padding-left:22px;font-size:11px}
+nav .back{margin:5px 0 16px;border-bottom:1px solid #476174;padding-bottom:12px}
+main{margin-left:308px;padding:40px 34px 90px}article{max-width:1000px;margin:auto;background:var(--paper);padding:60px 66px;border:1px solid var(--line);border-radius:16px;box-shadow:0 17px 48px #2a4b6e12}
+.eyebrow{letter-spacing:.14em;font-weight:800;color:var(--accent);font-size:12px}h1,h2,h3,h4{line-height:1.3;scroll-margin-top:24px}h1{font-size:36px;color:#163f60;margin:8px 0 14px}h2{font-size:25px;border-bottom:1px solid var(--line);padding-bottom:12px;margin:52px 0 20px}h3{font-size:19px;color:#1c5987;margin:30px 0 12px}p{margin:13px 0}blockquote{margin:22px 0;background:#eef6ff;border-left:4px solid #4189bd;padding:10px 21px;border-radius:0 10px 10px 0}blockquote p{margin:7px 0}
+a{color:#126aa3}a:hover{text-decoration:none}code{font:13px/1.5 ui-monospace,Consolas,monospace;background:#eef3f8;padding:2px 5px;border-radius:4px}pre{overflow:auto;background:var(--code);color:var(--codeink);padding:21px;border-radius:11px;line-height:1.58;font-size:13px}pre code{padding:0;background:none;color:inherit;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:20px 0}table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}th{background:#e9f3fa;text-align:left}th,td{border:1px solid #d4e2ea;padding:10px 13px;vertical-align:top}tr:nth-child(even) td{background:#f7fafc}hr{border:0;border-top:1px solid var(--line);margin:38px 0}
+.diagram{margin:22px 0;padding:15px;background:#f6faff;border:1px solid #d9e5f0;border-radius:11px;text-align:center;overflow:hidden}.diagram img{max-width:100%;height:auto;min-width: min(280px,100%)}.diagram figcaption{text-align:left;font-size:12px;color:#42607a;padding:11px 5px 0}.diagram details{display:inline-block}.diagram summary{cursor:pointer;color:#13659e;font-weight:700}.diagram pre{text-align:left;max-height:290px;font-size:11px;white-space:pre-wrap}
+.toolbar{position:fixed;right:24px;top:15px;z-index:8;display:flex;gap:8px}.toolbar button,.mobile-toggle{background:#17609e;color:white;border:0;border-radius:8px;padding:9px 13px;cursor:pointer}.mobile-toggle{display:none;position:fixed;bottom:18px;right:18px;z-index:11}
+#progress{position:fixed;left:0;top:0;height:4px;background:#22a1bc;width:0;z-index:12}footer{color:#728698;text-align:center;font-size:13px;margin-top:30px}
+body.dark{--bg:#071522;--paper:#10263a;--ink:#dbe9f4;--muted:#9bb5c8;--accent:#8dcaff;--line:#30485a;--code:#06131e;--codeink:#e9f5ff}
+body.dark h1,body.dark h3{color:#a9d9fa}body.dark h2{color:#dbe9f4}body.dark th{background:#203e55}body.dark tr:nth-child(even) td{background:#162f43}body.dark blockquote{background:#1a3a52}body.dark .diagram{background:#f2f7fd}body.dark code{background:#28445b;color:#e9f5ff}body.dark pre code{background:none}
+@media(max-width:1000px){nav{transform:translateX(-103%);transition:transform .25s}body.nav-open nav{transform:translateX(0)}main{margin:0;padding:20px 10px 65px}article{padding:40px 26px}.mobile-toggle{display:block}}
+@media(max-width:600px){article{padding:27px 17px}h1{font-size:28px}h2{font-size:22px}body{font-size:15px}.toolbar{right:12px;top:9px}.toolbar button{font-size:11px}}
+@media print{nav,.toolbar,.mobile-toggle,#progress{display:none}main{padding:0;margin:0}article{max-width:none;border:0;box-shadow:none;padding:0}h2,h3{break-after:avoid}.diagram{break-inside:avoid}body{background:white;color:black}a{color:inherit}}
+</style></head><body>
+<div id="progress"></div><nav><strong>INSIDE E-COMMERCE</strong><small>Volume 1 — Understanding E-commerce<br>Chapter 04 · Product & Pricing Engineering</small>
+<a class="back" href="chapter-03-domain-modeling.html">← Chương 03: Domain Modeling</a>
+<input id="search" placeholder="Tìm tiêu đề trong chương…" aria-label="Tìm trong mục lục"><a class="h2" href="#volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</a>
+<a class="h3" href="#chapter-04-product-pricing-engineering-v-sao-gi-kh-ng-ch-l-m-t-c-t-price">Chapter 04 — Product &amp; Pricing Engineering: Vì sao giá không chỉ là một cột price ?</a>
+<a class="h2" href="#sau-ch-ng-n-y-b-n-c-th">Sau chương này, bạn có thể</a>
+<a class="h2" href="#4-1-bad-case-l-u-m-i-th-trong-products-price">4.1. Bad case: lưu mọi thứ trong products.price</a>
+<a class="h3" href="#n-i-dau-d-c-b-c-l-qua-b-n-c-u-h-i">Nỗi đau được bộc lộ qua bốn câu hỏi</a>
+<a class="h2" href="#4-2-product-sku-v-seller-offer-ai-th-c-s-s-h-u-gi">4.2. Product, SKU và Seller Offer: ai thực sự sở hữu giá?</a>
+<a class="h3" href="#nh-ng-m-c-gi-ph-i-t-ch-t-n">Những mức giá phải tách tên</a>
+<a class="h2" href="#4-3-pricing-context-v-sao-c-ng-sku-c-nhi-u-gi-h-p-l">4.3. Pricing Context — vì sao cùng SKU có nhiều giá hợp lệ?</a>
+<a class="h3" href="#ph-n-bi-t-quote-v-order">Phân biệt Quote và Order</a>
+<a class="h2" href="#4-4-pricing-pipeline-t-gi-ch-o-b-n-d-n-s-ti-n-c-n-thanh-to-n">4.4. Pricing Pipeline: từ giá chào bán đến số tiền cần thanh toán</a>
+<a class="h3" href="#m-t-ph-p-t-nh-tr-n-v-n-gi-d-nh-ch-nh-s-ch-c-th">Một phép tính trọn vẹn (giả định chính sách cụ thể)</a>
+<a class="h3" href="#kh-ng-cho-t-ng-m">Không cho tổng âm</a>
+<a class="h2" href="#4-5-promotion-v-voucher-hai-kh-i-ni-m-kh-ng-n-n-nh-p-l-m-m-t">4.5. Promotion và Voucher: hai khái niệm không nên nhập làm một</a>
+<a class="h3" href="#bad-case-logic-u-d-i-r-i-r-c-trong-controller">Bad case: logic ưu đãi rải rác trong controller</a>
+<a class="h3" href="#stacking-policy-v-d">Stacking policy ví dụ</a>
+<a class="h2" href="#4-6-money-d-ng-d-ng-double-d-bi-u-di-n-ti-n">4.6. Money: đừng dùng double để biểu diễn tiền</a>
+<a class="h3" href="#value-object-n-n-bi-t-currency">Value Object nên biết currency</a>
+<a class="h3" href="#postgresql-numeric-thay-v-floating-point">PostgreSQL: NUMERIC thay vì floating point</a>
+<a class="h3" href="#v-n-d-l-m-tr-n-gi-m-10-000-vnd-cho-ba-d-ng-h-ng">Vấn đề làm tròn: giảm 10.000 VND cho ba dòng hàng</a>
+<a class="h2" href="#4-7-gi-t-i-ba-th-i-di-m-display-quote-snapshot">4.7. Giá tại ba thời điểm: display → quote → snapshot</a>
+<a class="h2" href="#4-8-checkout-revalidation-tuy-t-d-i-kh-ng-tin-t-ng-ti-n-t-frontend">4.8. Checkout Revalidation — tuyệt đối không tin tổng tiền từ frontend</a>
+<a class="h3" href="#bad-case">Bad case</a>
+<a class="h3" href="#thi-t-k-t-t-h-n">Thiết kế tốt hơn</a>
+<a class="h3" href="#c-a-s-toctou-ki-m-tra-d-ng-nh-ng-ghi-sai">Cửa sổ TOCTOU: kiểm tra đúng nhưng ghi sai</a>
+<a class="h2" href="#4-9-order-snapshot-m-t-h-a-d-n-c-ph-i-t-gi-i-th-ch-d-c">4.9. Order Snapshot: một hóa đơn cũ phải tự giải thích được</a>
+<a class="h3" href="#gi-l-ch-s-kh-c-d-ng-b-ng-m-i-th">Giá lịch sử khác “đóng băng mọi thứ”</a>
+<a class="h2" href="#4-10-cache-gi-t-ng-read-throughput-nh-ng-t-o-b-i-to-n-consistency">4.10. Cache giá: tăng READ throughput nhưng tạo bài toán consistency</a>
+<a class="h3" href="#b-n-failure-case-ph-i-d-li-u">Bốn failure case phải dự liệu</a>
+<a class="h3" href="#ph-n-bi-t-t-c-d-v-s-th-t-nghi-p-v">Phân biệt tốc độ và sự thật nghiệp vụ</a>
+<a class="h2" href="#4-11-product-lifecycle-v-price-lifecycle-l-hai-state-machine-kh-c-nhau">4.11. Product Lifecycle và Price Lifecycle là hai state machine khác nhau</a>
+<a class="h3" href="#price-history-v-th-i-gian-hi-u-l-c">Price history và thời gian hiệu lực</a>
+<a class="h2" href="#4-12-thi-t-k-ranh-gi-i-pricing-v-order-trong-spring-boot">4.12. Thiết kế ranh giới Pricing và Order trong Spring Boot</a>
+<a class="h3" href="#khi-n-o-t-ch-pricing-service">Khi nào tách Pricing Service?</a>
+<a class="h2" href="#4-13-bottleneck-shifting-t-i-u-m-t-l-p-di-m-ngh-n-d-ch-sang-l-p-kh-c">4.13. Bottleneck Shifting: tối ưu một lớp, điểm nghẽn dịch sang lớp khác</a>
+<a class="h2" href="#4-14-database-design-tham-kh-o-ghi-r-l-ch-s-v-t-nh-to-n">4.14. Database design tham khảo: ghi rõ lịch sử và tính toán</a>
+<a class="h2" href="#4-15-failure-scenarios-v-nguy-n-t-c-x-l">4.15. Failure Scenarios và nguyên tắc xử lý</a>
+<a class="h3" href="#three-invariants-ki-m-tra-xuy-n-su-t">Three invariants kiểm tra xuyên suốt</a>
+<a class="h2" href="#4-16-hands-on-lab-t-m-t-c-t-gi-t-i-checkout-quote">4.16. Hands-on Lab — từ một cột giá tới Checkout Quote</a>
+<a class="h3" href="#lab-a-kh-i-t-o-hai-seller-offer-cho-c-ng-sku">Lab A — Khởi tạo hai Seller Offer cho cùng SKU</a>
+<a class="h3" href="#lab-b-voucher-ch-c-n-m-t-l-t">Lab B — Voucher chỉ còn một lượt</a>
+<a class="h3" href="#lab-c-c-t-nh-ph-checkout">Lab C — Cố tình phá checkout</a>
+<a class="h3" href="#lab-d-ph-n-b-v-ho-n-m-t-ph-n">Lab D — Phân bổ và hoàn một phần</a>
+<a class="h3" href="#lab-e-cache-staleness-drill">Lab E — Cache staleness drill</a>
+<a class="h2" href="#4-17-chapter-review-t-tr-l-i-nh-m-t-system-designer">4.17. Chapter Review — tự trả lời như một system designer</a>
+<a class="h3" href="#key-takeaways">Key Takeaways</a>
+<a class="h2" href="#k-t-n-i-ch-ng-ti-p-theo">Kết nối chương tiếp theo</a>
+<a class="h2" href="#t-i-li-u-tham-kh-o">Tài liệu tham khảo</a></nav>
+<div class="toolbar"><button id="theme" type="button">☾ Tối</button><button onclick="window.print()" type="button">⎙ In / Save PDF</button></div><button id="mobile" class="mobile-toggle">☰ Mục lục</button>
+<main><article><div class="eyebrow">BACKEND ENGINEERING · SYSTEM DESIGN · PRODUCT & PRICING</div><h1 id="inside-e-commerce">INSIDE E-COMMERCE</h1>
+<h2 id="volume-1-understanding-e-commerce">Volume 1 — Understanding E-commerce</h2>
+<h3 id="chapter-04-product-pricing-engineering-v-sao-gi-kh-ng-ch-l-m-t-c-t-price">Chapter 04 — Product &amp; Pricing Engineering: Vì sao giá không chỉ là một cột <code>price</code>?</h3>
+<blockquote>
+<p><strong>Câu hỏi dẫn đường:</strong> Khách thấy điện thoại giá 20 triệu, admin giảm còn 19 triệu, voucher giảm thêm 500 nghìn, phí giao hàng thay đổi, rồi khách nhấn thanh toán đúng lúc chương trình hết hạn. Hệ thống phải hiển thị, tính và ghi nhận giá nào?</p>
+</blockquote>
+<blockquote>
+<p><strong>Phạm vi:</strong> Tiếp tục ví dụ giả định <strong>Hoàng Phone → Hoàng Marketplace</strong> ở chương 01–03. Các khoản tiền, thuế và ưu đãi trong chương là ví dụ thiết kế, không phải tư vấn pháp lý hoặc công thức áp dụng cho mọi quốc gia. Các chiến lược như “giữ giá X phút”, “áp voucher trước phí ship” là <strong>quy tắc business phải khai báo</strong>, không phải quy luật chung của mọi E-commerce.</p>
+</blockquote>
+<h2 id="sau-ch-ng-n-y-b-n-c-th">Sau chương này, bạn có thể</h2>
+<ul>
+<li>Phân biệt <strong>Product, Variant/SKU, Seller Offer, List Price, Selling Price, Compare-at Price, Cost, Price Quote và Order Price Snapshot</strong>.</li>
+<li>Thiết kế pricing pipeline kiểm tra điều kiện khuyến mãi, voucher, phí vận chuyển và thuế có <strong>thứ tự, phiên bản, cách làm tròn xác định</strong>.</li>
+<li>Giải thích vì sao cart total chỉ là <strong>ước tính</strong> và vì sao checkout phải tính lại bằng dữ liệu có thẩm quyền.</li>
+<li>Xử lý cuộc đua giữa cập nhật giá, cache cũ, voucher giới hạn lượt, Flash Sale và request checkout bị gửi lại.</li>
+<li>Thiết kế dữ liệu PostgreSQL và Java <code>BigDecimal</code> cho tiền tệ không sử dụng sai <code>double</code>.</li>
+<li>Tạo <strong>Price Quote</strong> có thời hạn hoặc chính sách revalidation; ghi <strong>Order Snapshot</strong> giải thích được giao dịch cũ.</li>
+<li>Quan sát bottleneck pricing, test invariants và nêu trade-off khi tách Pricing Service.</li>
+</ul>
+<hr/>
+<h2 id="4-1-bad-case-l-u-m-i-th-trong-products-price">4.1. Bad case: lưu mọi thứ trong <code>products.price</code></h2>
+<p>Phiên bản demo của Hoàng Phone chỉ có một giá và một seller:</p>
+<pre><code class="language-sql">CREATE TABLE products (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price NUMERIC(18, 2) NOT NULL
+);
+</code></pre>
+<p>Frontend nhận <code>product.price</code>, nhân số lượng, trừ voucher từ request rồi gửi <code>totalAmount</code> về backend. Backend tạo đơn theo số tiền đó.</p>
+<p><strong>Vấn đề không phải cột <code>price</code> luôn sai. Vấn đề là ta đã ép quá nhiều khái niệm khác nhau vào một con số và để client quyết định tiền phải thu.</strong></p>
+<p>Nếu thêm Marketplace, cùng một SKU có thể được Seller A chào bán 20 triệu và Seller B chào bán 19,7 triệu. Nếu thêm Flash Sale, giá còn phụ thuộc thời điểm và điều kiện. Nếu thêm voucher, giá cuối cùng còn phụ thuộc khách hàng, số lượng, giỏ hàng, địa chỉ nhận, cách giao hàng và quy tắc kết hợp ưu đãi.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-01.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 01" loading="lazy" src="assets/chapter-04/diagram-01.svg"/></a><figcaption><strong>Sơ đồ 01</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["products.price"] --&gt; B["Nhiều seller, cùng SKU"]
+    A --&gt; C["Flash Sale theo thời gian"]
+    A --&gt; D["Voucher theo khách và giỏ"]
+    A --&gt; E["Phí giao hàng và thuế"]
+    A --&gt; F["Giá tại thời điểm tạo đơn"]
+    B --&gt; G["Một cột không còn đủ ngữ nghĩa"]
+    C --&gt; G
+    D --&gt; G
+    E --&gt; G
+    F --&gt; G
+</pre></details></figcaption></figure>
+<h3 id="n-i-dau-d-c-b-c-l-qua-b-n-c-u-h-i">Nỗi đau được bộc lộ qua bốn câu hỏi</h3>
+<ol>
+<li>Cùng một mã hàng, hai seller khác nhau có được đặt hai giá khác nhau không?</li>
+<li>Khách đã đặt đơn với giá 20 triệu, admin sửa catalog còn 18 triệu: đơn cũ phải hiện 20 hay 18?</li>
+<li>Khách sửa <code>totalAmount=1000</code> trong HTTP request: backend có tin không?</li>
+<li>Giá Flash Sale hết hạn giữa lúc khách đang điền địa chỉ: hệ thống áp giá nào và thông báo ra sao?</li>
+</ol>
+<p>Ta cần định nghĩa lại <strong>giá thuộc ngữ cảnh nào và có hiệu lực vào thời điểm nào</strong>.</p>
+<h2 id="4-2-product-sku-v-seller-offer-ai-th-c-s-s-h-u-gi">4.2. Product, SKU và Seller Offer: ai thực sự sở hữu giá?</h2>
+<p>Trong ví dụ Marketplace, ba khái niệm dễ nhầm là:</p>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Trách nhiệm</th>
+<th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Product</td>
+<td>Thông tin mặt hàng chung</td>
+<td>Điện thoại X</td>
+</tr>
+<tr>
+<td>Variant / SKU</td>
+<td>Cấu hình hàng có thể bán</td>
+<td>X đen, 256 GB</td>
+</tr>
+<tr>
+<td>Seller Offer</td>
+<td>Lời chào bán của seller cho SKU theo điều kiện</td>
+<td>Seller A bán X đen 256 GB giá 20 triệu</td>
+</tr>
+</tbody>
+</table>
+<p>Cùng một variant có thể có nhiều Offer. Nếu hệ thống bán trực tiếp, giá có thể gắn vào SKU/price list của cửa hàng; nếu Marketplace, Seller Offer thường là vị trí tự nhiên để biểu đạt seller, kênh bán, điều kiện và mức giá.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-02.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 02" loading="lazy" src="assets/chapter-04/diagram-02.svg"/></a><figcaption><strong>Sơ đồ 02</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    P["Product: Phone X"] --&gt; V1["SKU: Black 256GB"]
+    P --&gt; V2["SKU: White 512GB"]
+    V1 --&gt; O1["Offer A: Seller A"]
+    V1 --&gt; O2["Offer B: Seller B"]
+    O1 --&gt; PR1["Price: 20,000,000 VND"]
+    O2 --&gt; PR2["Price: 19,700,000 VND"]
+</pre></details></figcaption></figure>
+<p><strong>Khái niệm ‘giá thuộc SKU hay Offer’ là quyết định domain</strong>, không phải yêu cầu công nghệ. Cần dựa vào cách vận hành: ai được sửa giá, ai chịu doanh thu, mức giá có thay đổi theo kênh/bên bán hay không.</p>
+<h3 id="nh-ng-m-c-gi-ph-i-t-ch-t-n">Những mức giá phải tách tên</h3>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Ý nghĩa</th>
+<th>Có nhất thiết là giá thanh toán?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>List / Regular Price</td>
+<td>Giá bán thông thường theo chính sách</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Selling Price</td>
+<td>Giá bán đang có hiệu lực trước các ưu đãi bổ sung</td>
+<td>Chưa chắc</td>
+</tr>
+<tr>
+<td>Compare-at Price</td>
+<td>Giá đối chiếu phục vụ hiển thị khi phù hợp quy định</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Cost / COGS</td>
+<td>Chi phí vốn phục vụ nội bộ</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Unit Price in Quote</td>
+<td>Đơn giá hệ thống xác nhận cho một yêu cầu cụ thể</td>
+<td>Tham gia tính tổng</td>
+</tr>
+<tr>
+<td>Line Total</td>
+<td>Tổng dòng hàng sau phân bổ giảm giá tương ứng</td>
+<td>Một phần tổng đơn</td>
+</tr>
+<tr>
+<td>Order Snapshot</td>
+<td>Giá đã chốt và phép tính tại thời điểm đặt đơn</td>
+<td>Căn cứ giải thích giao dịch</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Compare-at Price không mặc nhiên chứng minh khách đã từng mua ở giá đó.</strong> Cách thể hiện ‘giảm bao nhiêu %’ còn phải tuân thủ chính sách kinh doanh và quy định quảng cáo/giá tại thị trường triển khai. Các nền tảng commerce thực tế cũng tách <code>price</code> và <code>compare-at price</code> theo variant; tham khảo Shopify Help Center trong mục Tài liệu tham khảo cuối chương.</p>
+<h2 id="4-3-pricing-context-v-sao-c-ng-sku-c-nhi-u-gi-h-p-l">4.3. Pricing Context — vì sao cùng SKU có nhiều giá hợp lệ?</h2>
+<p>Đừng viết hàm <code>getPrice(productId)</code> rồi cố truyền thêm tham số mỗi khi business đổi yêu cầu. Hãy hình dung toàn bộ ngữ cảnh cần thiết để <strong>định giá một lời đề nghị mua hàng</strong>:</p>
+<pre><code class="language-json">{
+  "buyerId": 101,
+  "sellerOfferId": 701,
+  "skuId": "PHONE-X-BLACK-256",
+  "quantity": 2,
+  "channel": "WEB",
+  "currency": "VND",
+  "deliveryZone": "HANOI",
+  "promotionCodes": ["WELCOME500"],
+  "quotedAt": "2026-09-23T13:45:00+07:00"
+}
+</code></pre>
+<p><code>buyerId</code> có thể chỉ dùng để tra cứu phân khúc/điều kiện ưu đãi, không cần lộ dữ liệu nhạy cảm trong cache key. <code>quotedAt</code> cần được lấy từ thời gian tin cậy phía server; <strong>không tin thời gian do client tự gửi</strong>. Địa chỉ chính xác được cung cấp ở checkout, còn khu vực giao hàng có thể dùng cho báo giá sơ bộ.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-03.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 03" loading="lazy" src="assets/chapter-04/diagram-03.svg"/></a><figcaption><strong>Sơ đồ 03</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart LR
+    U["Buyer &amp; cart"] --&gt; X["Pricing Context"]
+    O["Seller Offer"] --&gt; X
+    CH["Channel &amp; time"] --&gt; X
+    D["Destination"] --&gt; X
+    V["Voucher"] --&gt; X
+    X --&gt; R["Pricing Rules"]
+    R --&gt; Q["Price Quote"]
+</pre></details></figcaption></figure>
+<h3 id="ph-n-bi-t-quote-v-order">Phân biệt Quote và Order</h3>
+<ul>
+<li><strong>Product display price:</strong> mức giá đủ hữu ích để duyệt catalog; có thể cache theo ngữ cảnh đã xác định.</li>
+<li><strong>Cart estimate:</strong> giá tạm tính; phải chấp nhận thay đổi về phí ship/ưu đãi khi checkout.</li>
+<li><strong>Checkout quote:</strong> kết quả tính chính thức hơn, có thời hạn và điều kiện sử dụng rõ ràng.</li>
+<li><strong>Order snapshot:</strong> các giá trị giao dịch được chốt sau khi tạo đơn thành công; không tham chiếu sống sang catalog để tái tính đơn cũ.</li>
+</ul>
+<p>Một Quote <strong>không tự động giữ tồn kho hay voucher</strong>. Muốn đảm bảo mức giá/ưu đãi đến thời điểm chốt đơn, bạn cần triển khai thêm cơ chế commit/reservation cho các tài nguyên tương ứng, và quy tắc hết hạn rõ ràng.</p>
+<h2 id="4-4-pricing-pipeline-t-gi-ch-o-b-n-d-n-s-ti-n-c-n-thanh-to-n">4.4. Pricing Pipeline: từ giá chào bán đến số tiền cần thanh toán</h2>
+<p>Một mô hình minh họa cho Hoàng Phone:</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-04.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 04" loading="lazy" src="assets/chapter-04/diagram-04.svg"/></a><figcaption><strong>Sơ đồ 04</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Load active Seller Offer"] --&gt; B["Validate buyer, SKU, quantity"]
+    B --&gt; C["Select base selling price"]
+    C --&gt; D["Evaluate campaign rules"]
+    D --&gt; E["Apply item discounts"]
+    E --&gt; F["Apply order-level voucher"]
+    F --&gt; G["Calculate shipping"]
+    G --&gt; H["Calculate tax by policy"]
+    H --&gt; I["Rounding &amp; invariants"]
+    I --&gt; J["Create Price Quote"]
+    J --&gt; K["Revalidate + commit at checkout"]
+    K --&gt; L["Persist Order Snapshot"]
+</pre></details></figcaption></figure>
+<p><strong>Không có một thứ tự cộng/trừ duy nhất đúng với tất cả thị trường hoặc chiến dịch.</strong> Đặc biệt thuế có thể là giá bao gồm thuế, giá chưa thuế, thuế tính trên giá sau giảm, các voucher có thể được phân bổ về từng dòng hàng. Từng chiến dịch phải mô tả rõ cơ sở tính, đối tượng giảm, thứ tự, khả năng kết hợp và làm tròn.</p>
+<h3 id="m-t-ph-p-t-nh-tr-n-v-n-gi-d-nh-ch-nh-s-ch-c-th">Một phép tính trọn vẹn (giả định chính sách cụ thể)</h3>
+<p>Đơn mua 2 chiếc tai nghe, mỗi chiếc 500.000 VND:</p>
+<table>
+<thead>
+<tr>
+<th>Bước</th>
+<th style="text-align:right">Phép tính</th>
+<th style="text-align:right">Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gross item subtotal</td>
+<td style="text-align:right">2 × 500.000</td>
+<td style="text-align:right">1.000.000</td>
+</tr>
+<tr>
+<td>Item campaign discount</td>
+<td style="text-align:right">−10% của item subtotal</td>
+<td style="text-align:right">−100.000</td>
+</tr>
+<tr>
+<td>Subtotal after item discount</td>
+<td style="text-align:right">1.000.000 − 100.000</td>
+<td style="text-align:right">900.000</td>
+</tr>
+<tr>
+<td>Order voucher</td>
+<td style="text-align:right">−50.000</td>
+<td style="text-align:right">−50.000</td>
+</tr>
+<tr>
+<td>Merchandise total</td>
+<td style="text-align:right">900.000 − 50.000</td>
+<td style="text-align:right">850.000</td>
+</tr>
+<tr>
+<td>Shipping fee</td>
+<td style="text-align:right">+30.000</td>
+<td style="text-align:right">880.000</td>
+</tr>
+<tr>
+<td>Tax (ví dụ này giả định đã nằm trong giá)</td>
+<td style="text-align:right">+0</td>
+<td style="text-align:right"><strong>880.000 VND</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Lưu ý: đây là ví dụ <strong>giá đã bao gồm mọi thuế áp dụng</strong> nên không cộng thuế ở cuối. Không suy diễn công thức này thành cách tính thuế mặc định cho mọi hàng hóa.</p>
+<h3 id="kh-ng-cho-t-ng-m">Không cho tổng âm</h3>
+<p>Nếu voucher 1 triệu áp lên giỏ đủ điều kiện trị giá 850.000 mà chính sách không cho phát sinh credit, discount được <strong>cap</strong> tại 850.000, hoặc voucher bị từ chối nếu quy tắc quy định mức mua tối thiểu. Việc chọn cách xử lý thuộc rule engine, không phải <code>Math.max(0,total)</code> vá ở bước cuối.</p>
+<h2 id="4-5-promotion-v-voucher-hai-kh-i-ni-m-kh-ng-n-n-nh-p-l-m-m-t">4.5. Promotion và Voucher: hai khái niệm không nên nhập làm một</h2>
+<p>Một campaign tự động có thể áp dụng khi điều kiện thỏa mãn; voucher thường yêu cầu code hoặc được phát cho một khách nhất định. Nhưng business hoàn toàn có thể gọi “voucher tự động”, vì vậy hãy ghi rõ định nghĩa trong glossary của dự án.</p>
+<p><strong>Promotion Rule</strong> nên trả lời được:</p>
+<ul>
+<li><code>eligible</code>: ai, seller nào, SKU nào, kênh nào, vùng giao nào được áp dụng?</li>
+<li><code>validity</code>: <code>starts_at &lt;= server_now &lt; ends_at</code> hay lịch theo timezone nào?</li>
+<li><code>benefit</code>: giảm % hay tiền cố định, có mức tối đa không, có miễn phí ship không?</li>
+<li><code>stackability</code>: có kết hợp voucher, campaign khác, Flash Sale hay giá dành cho thành viên không?</li>
+<li><code>budget</code>: tổng ngân sách, số lượt sử dụng, giới hạn mỗi user và giới hạn toàn campaign là bao nhiêu?</li>
+<li><code>allocation</code>: discount cấp đơn phân về từng item/seller như thế nào khi hoàn một phần?</li>
+</ul>
+<h3 id="bad-case-logic-u-d-i-r-i-r-c-trong-controller">Bad case: logic ưu đãi rải rác trong controller</h3>
+<pre><code class="language-java">if (voucher.equals("WELCOME500")) total -= 500_000;
+if (isFlashSale) total = total * 0.8;
+if (isVip) total -= 100_000;
+</code></pre>
+<p>Ba dòng code này không nói rõ thứ tự, giá trị tối thiểu, giới hạn giảm, số tiền còn lại, điều kiện seller, cách làm tròn, quyền sửa mã từ request, và liệu khách VIP có được dùng đồng thời với Flash Sale không.</p>
+<p>Thay vì “if chain” không có metadata, tách việc kiểm tra điều kiện và việc áp dụng:</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-05.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 05" loading="lazy" src="assets/chapter-04/diagram-05.svg"/></a><figcaption><strong>Sơ đồ 05</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    C["Pricing Context"] --&gt; E["Eligibility Engine"]
+    R["Promotion Rules"] --&gt; E
+    E --&gt; A["Applicable Benefits"]
+    A --&gt; S["Stacking &amp; Priority Policy"]
+    S --&gt; B["Discount Calculation"]
+    B --&gt; AL["Line Allocation"]
+    AL --&gt; EX["Explainable Quote"]
+</pre></details></figcaption></figure>
+<h3 id="stacking-policy-v-d">Stacking policy ví dụ</h3>
+<table>
+<thead>
+<tr>
+<th>Campaign</th>
+<th>Voucher</th>
+<th>Chính sách giả định</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flash Sale 20%</td>
+<td>WELCOME50K</td>
+<td>Không stack</td>
+<td>Chọn một theo điều kiện business</td>
+</tr>
+<tr>
+<td>Category 10%</td>
+<td>Free Shipping</td>
+<td>Stack được</td>
+<td>Giảm hàng + giảm ship</td>
+</tr>
+<tr>
+<td>Seller A 5%</td>
+<td>Seller B 5%</td>
+<td>Áp theo seller</td>
+<td>Mỗi benefit chỉ trên item tương ứng</td>
+</tr>
+</tbody>
+</table>
+<p>Từ “chọn một” không nhất thiết nghĩa là chọn giảm giá lớn nhất: có nơi ưu tiên campaign cao hơn, nơi khác chọn lợi ích cao hơn, nơi khác buộc người dùng lựa chọn. Đây là phần cần thống nhất với business và đưa vào test.</p>
+<h2 id="4-6-money-d-ng-d-ng-double-d-bi-u-di-n-ti-n">4.6. Money: đừng dùng <code>double</code> để biểu diễn tiền</h2>
+<p><code>double</code> lưu số thực nhị phân gần đúng; không thể biểu diễn chính xác nhiều số thập phân như 0.1. Những phép cộng/trừ nhỏ khi tích lũy qua hàng nghìn dòng có thể gây sai lệch khi đối soát. Với Java, dùng <code>BigDecimal</code> có scale/rounding rõ ràng, hoặc dùng số nguyên đơn vị tiền nhỏ nhất nếu hệ thống thống nhất quy ước từ đầu.</p>
+<pre><code class="language-java">import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+BigDecimal price = new BigDecimal("500000");
+BigDecimal quantity = BigDecimal.valueOf(2);
+BigDecimal gross = price.multiply(quantity);
+BigDecimal tenPercent = gross
+    .multiply(new BigDecimal("0.10"))
+    .setScale(0, RoundingMode.HALF_UP);
+BigDecimal net = gross.subtract(tenPercent);
+
+// Tránh new BigDecimal(0.1): constructor nhận double đã gần đúng.
+</code></pre>
+<h3 id="value-object-n-n-bi-t-currency">Value Object nên biết currency</h3>
+<pre><code class="language-java">public record Money(BigDecimal amount, String currency) {
+    public Money {
+        if (amount == null || currency == null || currency.isBlank()) {
+            throw new IllegalArgumentException("Money must have amount and currency");
+        }
+    }
+
+    public Money add(Money other) {
+        if (!currency.equals(other.currency())) {
+            throw new IllegalArgumentException("Currency mismatch");
+        }
+        return new Money(amount.add(other.amount()), currency);
+    }
+}
+</code></pre>
+<p>Đây là <strong>mẫu minh họa</strong>; production còn phải quy định scale được chấp nhận của từng currency, cách chuẩn hóa mã tiền, rounding, serialisation, overflow/range và conversion rate nếu bán xuyên biên giới.</p>
+<h3 id="postgresql-numeric-thay-v-floating-point">PostgreSQL: <code>NUMERIC</code> thay vì floating point</h3>
+<pre><code class="language-sql">selling_amount NUMERIC(18, 2) NOT NULL
+  CHECK (selling_amount &gt;= 0),
+currency_code CHAR(3) NOT NULL
+</code></pre>
+<p>PostgreSQL khuyến nghị kiểu <code>numeric</code> cho các giá trị cần chính xác như tiền. <code>NUMERIC(18,2)</code> không tự động là lựa chọn tốt nhất cho tất cả currency: VND thường có thể chọn <code>NUMERIC(18,0)</code> theo chính sách không dùng phần thập phân, trong khi một số currency cần số chữ số lẻ khác. Nếu dữ liệu đa tiền tệ, nên quyết định một quy tắc chuẩn hóa hợp lệ và nhất quán cho từng đồng tiền, hoặc lưu đơn vị nhỏ nhất khi phù hợp.</p>
+<h3 id="v-n-d-l-m-tr-n-gi-m-10-000-vnd-cho-ba-d-ng-h-ng">Vấn đề làm tròn: giảm 10.000 VND cho ba dòng hàng</h3>
+<p>Tính số tiền giảm theo tỷ trọng với line gross lần lượt 100.000, 100.000, 100.000:</p>
+<ul>
+<li>Tỷ lệ mỗi dòng: 10.000 ÷ 3 = 3.333,333... VND.</li>
+<li>Nếu làm tròn từng dòng: 3.333 × 3 = 9.999 → thiếu 1 VND.</li>
+<li>Cách phân bổ deterministic minh họa: <strong>3.334 + 3.333 + 3.333 = 10.000</strong>.</li>
+</ul>
+<p>Quy tắc phân bổ phải bảo đảm:</p>
+<pre><code class="language-text">sum(allocated_discounts) == order_discount
+sum(line_payables) + shipping + tax_adjustment == payable_total
+</code></pre>
+<p>Với marketplace, lưu allocation theo seller/line để refund một phần và settlement không phải đoán lại từ tỷ lệ hiện tại. Các khoản tax/shipping nếu được hoàn hay không phải được xử lý theo quy tắc riêng.</p>
+<h2 id="4-7-gi-t-i-ba-th-i-di-m-display-quote-snapshot">4.7. Giá tại ba thời điểm: display → quote → snapshot</h2>
+<p>Giả sử Hoàng Phone đang bán một điện thoại:</p>
+<table>
+<thead>
+<tr>
+<th>Thời điểm</th>
+<th>Sự kiện</th>
+<th style="text-align:right">Giá</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10:00</td>
+<td>Khách mở trang sản phẩm</td>
+<td style="text-align:right">20.000.000</td>
+</tr>
+<tr>
+<td>10:02</td>
+<td>Admin giảm giá</td>
+<td style="text-align:right">19.000.000</td>
+</tr>
+<tr>
+<td>10:03</td>
+<td>Khách nhấn checkout</td>
+<td style="text-align:right">Cần xử lý theo chính sách</td>
+</tr>
+<tr>
+<td>10:04</td>
+<td>Đơn được xác nhận</td>
+<td style="text-align:right">Giá trong snapshot được chốt</td>
+</tr>
+</tbody>
+</table>
+<p>Có ít nhất hai mô hình hợp lệ:</p>
+<p><strong>Model A — Reprice at checkout:</strong> giá hiển thị mang tính tham khảo; checkout trả quote mới 19 triệu; khách cần xác nhận thay đổi. Dễ triển khai hơn, nhưng UX phải minh bạch.</p>
+<p><strong>Model B — Time-bounded price guarantee:</strong> hệ thống phát quote 20 triệu hợp lệ tới thời điểm nhất định. Cần lưu và xác minh quote, đồng thời xử lý trường hợp chiến dịch/ngân sách/voucher/tồn kho hết. Quote đã hết hạn phải được tính lại; quote chưa hết hạn không mặc nhiên bảo đảm tồn kho.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-06.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 06" loading="lazy" src="assets/chapter-04/diagram-06.svg"/></a><figcaption><strong>Sơ đồ 06</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>sequenceDiagram
+    participant U as Customer
+    participant C as Catalog
+    participant P as Pricing
+    participant O as Order
+    U-&gt;&gt;C: Xem sản phẩm lúc 10:00
+    C--&gt;&gt;U: Display price 20M
+    U-&gt;&gt;P: Checkout lúc 10:03
+    P-&gt;&gt;P: Revalidate offer and rules
+    P--&gt;&gt;U: Quote 19M / confirm change
+    U-&gt;&gt;O: Accept quote
+    O-&gt;&gt;P: Verify quote/version
+    P--&gt;&gt;O: Eligible
+    O--&gt;&gt;U: Order snapshot 19M
+</pre></details></figcaption></figure>
+<p>Một <strong>Price Quote</strong> có thể gồm:</p>
+<pre><code class="language-json">{
+  "quoteId": "QT-20260923-001",
+  "buyerId": 101,
+  "currency": "VND",
+  "sellerOfferId": 701,
+  "priceVersion": 42,
+  "promotionVersion": 8,
+  "lineSubtotal": "20000000",
+  "discountTotal": "1000000",
+  "shippingFee": "30000",
+  "taxIncluded": true,
+  "payableTotal": "19030000",
+  "expiresAt": "2026-09-23T14:00:00+07:00"
+}
+</code></pre>
+<p><code>priceVersion</code> và <code>promotionVersion</code> giúp truy vết <strong>rule nào đã tạo ra quote</strong>, không đồng nghĩa với tự động thực thi ràng buộc hết hạn. <code>quoteId</code> phải liên kết với dữ liệu lưu phía server hoặc có chữ ký chống sửa đổi, ràng buộc buyer và cart fingerprint khi sử dụng. Nếu cần giữ quyền dùng voucher, có thể thêm <strong>promotion reservation</strong> được commit cùng order theo cơ chế nhất quán đã chọn.</p>
+<h2 id="4-8-checkout-revalidation-tuy-t-d-i-kh-ng-tin-t-ng-ti-n-t-frontend">4.8. Checkout Revalidation — tuyệt đối không tin tổng tiền từ frontend</h2>
+<h3 id="bad-case">Bad case</h3>
+<pre><code class="language-http">POST /orders
+Content-Type: application/json
+
+{"skuId":"PHONE-X","quantity":1,"totalAmount":1000}
+</code></pre>
+<p>Nếu backend lấy <code>totalAmount</code> trực tiếp để tạo order và charge payment, chỉ cần sửa request là giá đã sai.</p>
+<h3 id="thi-t-k-t-t-h-n">Thiết kế tốt hơn</h3>
+<pre><code class="language-text">Client gửi: offerId, quantity, address/method, voucher, quoteId, idempotencyKey
+Server lấy: giá và rules có thẩm quyền, tình trạng voucher, quota, shipping, tax
+Server tự tính: line totals, discounts, payable, snapshot
+</code></pre>
+<figure class="diagram"><a href="assets/chapter-04/diagram-07.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 07" loading="lazy" src="assets/chapter-04/diagram-07.svg"/></a><figcaption><strong>Sơ đồ 07</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["POST checkout"] --&gt; B["Authenticate buyer"]
+    B --&gt; C["Load quote and cart fingerprint"]
+    C --&gt; D["Check expiry and price policy"]
+    D --&gt; E["Validate promotion budget"]
+    E --&gt; F["Validate inventory / reserve"]
+    F --&gt; G["Compute authoritative payable"]
+    G --&gt; H["Create order snapshot"]
+    H --&gt; I["Return order and payment intent"]
+</pre></details></figcaption></figure>
+<p>Nếu giá thay đổi ngoài policy cho phép, trả lỗi nghiệp vụ có cấu trúc như <code>PRICE_CHANGED</code> và quote mới để client quyết định, <strong>không tự âm thầm charge giá khác đã được khách đồng ý</strong>.</p>
+<h3 id="c-a-s-toctou-ki-m-tra-d-ng-nh-ng-ghi-sai">Cửa sổ TOCTOU: kiểm tra đúng nhưng ghi sai</h3>
+<p>TOCTOU = <em>Time Of Check To Time Of Use</em>.</p>
+<pre><code class="language-text">A: Check voucher remaining = 1
+B: Check voucher remaining = 1
+A: Create order and use voucher
+B: Create order and use voucher
+</code></pre>
+<p>Dù cả hai lần kiểm tra đều chính xác ở thời điểm đọc, tổng cộng đã dùng voucher hai lần. Đây không phải bug của Redis hay Kubernetes; đây là lỗi <strong>kiểm tra và tiêu thụ quyền lợi không được thực hiện nguyên tử</strong>.</p>
+<p>Một cách bảo vệ quota PostgreSQL:</p>
+<pre><code class="language-sql">UPDATE promotion_budget
+SET reserved_uses = reserved_uses + 1
+WHERE promotion_id = :promotion_id
+  AND reserved_uses + consumed_uses &lt; usage_limit;
+</code></pre>
+<p>Chỉ tiếp tục khi <code>affected_rows = 1</code>. Để chống lặp theo mỗi user cần thêm khóa duy nhất/idempotency trên <code>promotion_redemption</code>, không chỉ global counter. <code>reserved_uses</code> phải được giải phóng chính xác một lần khi reservation hết hạn/hủy; <code>consumed_uses</code> phản ánh rule “dùng thành công” đã được business định nghĩa.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-08.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 08" loading="lazy" src="assets/chapter-04/diagram-08.svg"/></a><figcaption><strong>Sơ đồ 08</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Two requests read one voucher"] --&gt; B["Naive check then insert"]
+    B --&gt; C["Quota can be exceeded"]
+    A --&gt; D["Atomic conditional reserve"]
+    D --&gt; E["Only one reservation succeeds"]
+    E --&gt; F["Commit / release exactly once"]
+</pre></details></figcaption></figure>
+<h2 id="4-9-order-snapshot-m-t-h-a-d-n-c-ph-i-t-gi-i-th-ch-d-c">4.9. Order Snapshot: một hóa đơn cũ phải tự giải thích được</h2>
+<p>Một lỗi khá phổ biến: <code>order_items</code> chỉ lưu <code>sku_id</code> và <code>quantity</code>, còn màn hình lịch sử đơn luôn JOIN sang bảng giá hiện tại.</p>
+<p>Sau hai tháng, seller xóa offer hoặc đổi giá. Hóa đơn cũ đột nhiên hiện số tiền mới, hoặc không còn dữ liệu để render.</p>
+<p>Giải pháp: lưu snapshot những dữ liệu cần thiết tại thời điểm giao dịch; tham chiếu ID vẫn có ích để liên kết catalog, nhưng <strong>không dùng nó để tái tính giá đã chốt</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Dữ liệu ở Order Item</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sku_id</code>, <code>seller_offer_id</code></td>
+<td>Liên kết nguồn hàng</td>
+</tr>
+<tr>
+<td><code>product_name_snapshot</code>, <code>variant_snapshot</code></td>
+<td>Hiển thị lịch sử khi catalog đổi</td>
+</tr>
+<tr>
+<td><code>unit_price_snapshot</code></td>
+<td>Đơn giá tại thời điểm mua</td>
+</tr>
+<tr>
+<td><code>quantity</code></td>
+<td>Số lượng đã xác nhận</td>
+</tr>
+<tr>
+<td><code>gross_line_amount</code></td>
+<td>Giá trước điều chỉnh của dòng</td>
+</tr>
+<tr>
+<td><code>allocated_item_discount</code>, <code>allocated_order_discount</code></td>
+<td>Giải thích và refund từng dòng</td>
+</tr>
+<tr>
+<td><code>net_line_amount</code></td>
+<td>Giá trị dòng sau giảm</td>
+</tr>
+<tr>
+<td><code>currency_code</code></td>
+<td>Đồng tiền giao dịch</td>
+</tr>
+<tr>
+<td><code>price_version</code>, <code>applied_rule_ids</code></td>
+<td>Audit và giải thích nguồn giá</td>
+</tr>
+</tbody>
+</table>
+<figure class="diagram"><a href="assets/chapter-04/diagram-09.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 09" loading="lazy" src="assets/chapter-04/diagram-09.svg"/></a><figcaption><strong>Sơ đồ 09</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    O["Seller Offer today: 19M"] --&gt; Q["Checkout quote: version 42"]
+    Q --&gt; S["Order Item Snapshot: 19M"]
+    O --&gt; E["Seller edits offer: 21M"]
+    E --&gt; N["New checkout: 21M"]
+    S --&gt; H["Old order stays 19M"]
+</pre></details></figcaption></figure>
+<p>Trong Marketplace, cần lưu <strong>discount allocation theo Seller Order và Order Item</strong>, cùng các khoản fee/commission/seller subsidy do ai chịu, để seller settlement và hoàn hàng một phần có thể đối soát. Không nên cố suy ra lịch sử từ cấu hình khuyến mãi đã được sửa hoặc xóa.</p>
+<h3 id="gi-l-ch-s-kh-c-d-ng-b-ng-m-i-th">Giá lịch sử khác “đóng băng mọi thứ”</h3>
+<p>Bạn vẫn có thể cập nhật một số thông tin vận hành như tracking number, ghi chú nội bộ và trạng thái giao hàng. Điều cần bất biến hoặc được điều chỉnh qua nghiệp vụ rõ ràng là <strong>các giá trị đã thỏa thuận và vết thay đổi tài chính</strong>, không phải toàn bộ record <code>orders</code>.</p>
+<h2 id="4-10-cache-gi-t-ng-read-throughput-nh-ng-t-o-b-i-to-n-consistency">4.10. Cache giá: tăng READ throughput nhưng tạo bài toán consistency</h2>
+<p>Product page là một candidate điển hình để cache. Nhưng cache nguyên <code>product:1001</code> chỉ chứa một giá có thể sai khi: một SKU có nhiều seller; Flash Sale đổi theo thời gian; khách thuộc price tier khác; currency/channel khác.</p>
+<p>Định nghĩa cache key theo <strong>những chiều thực sự làm thay đổi kết quả</strong>:</p>
+<pre><code class="language-text">catalog:product:{productId}:v{catalogVersion}
+offer:{sellerOfferId}:v{priceVersion}:channel:{channel}
+</code></pre>
+<p>Không cache tùy tiện toàn bộ price quote được cá nhân hóa bằng một key dùng chung. Nếu một quote phụ thuộc buyer/voucher/địa chỉ, cần cache ở phạm vi hợp lý hoặc không cache; không ghi dữ liệu nhạy cảm thô vào key.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-10.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 10" loading="lazy" src="assets/chapter-04/diagram-10.svg"/></a><figcaption><strong>Sơ đồ 10</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    R["Product request"] --&gt; C["Redis price / offer cache"]
+    C --&gt;|"Hit and valid"| X["Display price"]
+    C --&gt;|"Miss or stale"| D["Authoritative DB/rules"]
+    D --&gt; C
+    A["Admin updates offer"] --&gt; T["DB commit + version/event"]
+    T --&gt; V["Invalidate or version old cache"]
+    V --&gt; C
+</pre></details></figcaption></figure>
+<h3 id="b-n-failure-case-ph-i-d-li-u">Bốn failure case phải dự liệu</h3>
+<ol>
+<li><strong>Stale cache:</strong> giá admin đã cập nhật nhưng cache vẫn còn TTL. Giải pháp có thể là versioned key, invalidate sau commit, TTL ngắn phù hợp hoặc nguồn cập nhật event; vẫn phải revalidate lúc checkout.</li>
+<li><strong>Cache stampede:</strong> giá hot vừa hết TTL, hàng nghìn request cùng đánh DB. Có thể dùng single-flight/per-key lock, stale-while-revalidate cho <strong>display</strong> khi business chấp nhận, hoặc prewarm. Không lấy stale estimate làm tiền charge.</li>
+<li><strong>Delayed invalidation:</strong> DB commit thành công nhưng event xóa cache thất bại. Có thể dùng transactional outbox để phát event đáng tin cậy hơn, TTL là giới hạn bảo vệ bổ sung.</li>
+<li><strong>Clock boundary:</strong> Flash Sale hết hạn nhưng key còn 5 phút TTL. TTL phải được giới hạn bởi thời điểm hết hiệu lực giá/chiến dịch nếu cache biểu diễn giá đang có hiệu lực.</li>
+</ol>
+<h3 id="ph-n-bi-t-t-c-d-v-s-th-t-nghi-p-v">Phân biệt tốc độ và sự thật nghiệp vụ</h3>
+<p>Redis phục vụ hàng nghìn trang sản phẩm nhanh; PostgreSQL/rule authority cùng giao dịch checkout mới quyết định số tiền được chốt theo hợp đồng nghiệp vụ. Không phải mọi checkout đều cần bypass Redis: điều bắt buộc là <strong>cơ chế xác nhận đúng rule/version/quota</strong>, bất kể dữ liệu được đọc từ đâu.</p>
+<h2 id="4-11-product-lifecycle-v-price-lifecycle-l-hai-state-machine-kh-c-nhau">4.11. Product Lifecycle và Price Lifecycle là hai state machine khác nhau</h2>
+<p>Một Product có thể tồn tại nhưng chưa được đăng bán; Offer có thể được lưu nhưng chưa có giá hợp lệ; chương trình giảm giá có thời điểm bắt đầu/kết thúc độc lập. Nếu gom tất cả vào <code>products.status</code>, bạn sẽ không biểu diễn được những trạng thái này.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-11.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 11" loading="lazy" src="assets/chapter-04/diagram-11.svg"/></a><figcaption><strong>Sơ đồ 11</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Product DRAFT"] --&gt; B["Product ACTIVE"]
+    B --&gt; C["Product ARCHIVED"]
+    B --&gt; O["Offer DRAFT"]
+    O --&gt; P["Offer ACTIVE"]
+    P --&gt; S["Offer PAUSED"]
+    S --&gt; P
+    P --&gt; X["Offer ENDED"]
+    P --&gt; PR["Promotion scheduled"]
+    PR --&gt; AC["Promotion active"]
+    AC --&gt; EN["Promotion ended"]
+</pre></details></figcaption></figure>
+<p>Đây là sơ đồ <strong>minh họa nhiều state machine liên quan</strong>, không có nghĩa Product ACTIVE “tạo” Offer DRAFT qua một transition của cùng aggregate. Cần quy định permission và transitions độc lập theo domain.</p>
+<h3 id="price-history-v-th-i-gian-hi-u-l-c">Price history và thời gian hiệu lực</h3>
+<p>Giá không chỉ có <code>updated_at</code>; có thể cần <code>valid_from</code> và <code>valid_to</code> để xác định mức giá tại thời điểm nào, đặc biệt khi đặt lịch khuyến mãi. Cần phân biệt:</p>
+<ul>
+<li><strong>Effective time:</strong> mức giá có hiệu lực với giao dịch khi nào?</li>
+<li><strong>Recorded time:</strong> hệ thống ghi nhận thay đổi khi nào?</li>
+</ul>
+<p>Hai khái niệm này giúp audit một thay đổi đặt lịch trước hoặc chỉnh sửa dữ liệu sai. Chỉ thêm hai cột thời gian chưa bảo đảm không có hai khoảng giá active chồng nhau; cần transaction và ràng buộc phù hợp (ví dụ exclusion constraint khi dùng PostgreSQL range).</p>
+<h2 id="4-12-thi-t-k-ranh-gi-i-pricing-v-order-trong-spring-boot">4.12. Thiết kế ranh giới Pricing và Order trong Spring Boot</h2>
+<p>MVP không cần deploy riêng Pricing Service. Bắt đầu bằng <strong>modular monolith</strong>:</p>
+<pre><code class="language-text">com.example.ecommerce
+├── catalog/
+│   ├── Product
+│   └── Variant
+├── offer/
+│   ├── SellerOffer
+│   └── OfferPriceHistory
+├── pricing/
+│   ├── PriceQuote
+│   ├── PricingContext
+│   ├── PricingPolicy
+│   ├── DiscountAllocation
+│   └── PricingApplicationService
+├── promotion/
+│   ├── PromotionRule
+│   ├── PromotionBudget
+│   └── Redemption
+├── checkout/
+│   └── CheckoutApplicationService
+└── order/
+    ├── Order
+    └── OrderItemSnapshot
+</code></pre>
+<p>Kiến trúc trách nhiệm:</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-12.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 12" loading="lazy" src="assets/chapter-04/diagram-12.svg"/></a><figcaption><strong>Sơ đồ 12</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    FE["Frontend"] --&gt; CH["Checkout Application Service"]
+    CH --&gt; PR["Pricing Module"]
+    PR --&gt; OF["Offer Module"]
+    PR --&gt; PM["Promotion Module"]
+    CH --&gt; IN["Inventory Module"]
+    CH --&gt; OR["Order Module"]
+    OR --&gt; DB["PostgreSQL"]
+    IN --&gt; DB
+    PM --&gt; DB
+</pre></details></figcaption></figure>
+<p><strong>Aggregate boundaries</strong> không nhất thiết đi theo package hoặc table. Pricing có thể là domain service tính kết quả thuần, còn Order sở hữu snapshot và Inventory/Promotion sở hữu reservation. Chính xác transaction nào cùng commit tùy coupling và database ownership.</p>
+<h3 id="khi-n-o-t-ch-pricing-service">Khi nào tách Pricing Service?</h3>
+<p>Tách riêng có thể hợp lý khi nhiều sản phẩm/kênh cùng dùng pricing engine; business cần deploy rule độc lập; team ownership đã rõ; tải CPU rule evaluation lớn hơn phần Order. Nhưng tách service tạo thêm network latency, versioning, cache consistency và distributed checkout flow. Chưa có nhu cầu thì package/module có ranh giới rõ là đủ.</p>
+<h2 id="4-13-bottleneck-shifting-t-i-u-m-t-l-p-di-m-ngh-n-d-ch-sang-l-p-kh-c">4.13. Bottleneck Shifting: tối ưu một lớp, điểm nghẽn dịch sang lớp khác</h2>
+<p>Ở giai đoạn đầu, query lấy giá có thể chậm vì JOIN/rules quá phức tạp. Bạn cache offer. Read throughput tăng nhưng vào giờ Flash Sale, tất cả cùng dùng voucher 500 nghìn → <strong>hot row <code>promotion_budget</code></strong>. Bạn tăng API Pods thì transaction chờ row lock nhiều hơn. Đưa yêu cầu vào queue sẽ giảm concurrent processing nhưng người mua phải đợi xác nhận.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-13.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 13" loading="lazy" src="assets/chapter-04/diagram-13.svg"/></a><figcaption><strong>Sơ đồ 13</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    A["Pricing reads slow"] --&gt; B["Redis cache"]
+    B --&gt; C["Campaign budget hot row"]
+    C --&gt; D["Atomic reserve + admission control"]
+    D --&gt; E["Queue backlog / user wait"]
+    E --&gt; F["Measure capacity and business SLA"]
+</pre></details></figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Bottleneck</th>
+<th>Triệu chứng quan sát</th>
+<th>Cách tiếp cận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rule evaluation CPU</td>
+<td>p95 quote tăng khi nhiều campaign</td>
+<td>Pre-filter candidate rules, profiling, cache rule metadata</td>
+</tr>
+<tr>
+<td>DB connection pool</td>
+<td>Threads chờ lấy connection</td>
+<td>Pool sizing, giảm transaction duration, hạn mức concurrency</td>
+</tr>
+<tr>
+<td>Voucher hot row</td>
+<td>Lock wait cao ở một promotion</td>
+<td>Admission control, queue/partition workload, điều chỉnh thiết kế quota</td>
+</tr>
+<tr>
+<td>Pricing cache miss</td>
+<td>DB read đột biến sau TTL</td>
+<td>Single-flight, prewarm, staggered TTL, version key</td>
+</tr>
+<tr>
+<td>External tax/shipping quote</td>
+<td>Phụ thuộc bên ngoài timeout</td>
+<td>Timeout, fallback theo chính sách, hiển thị pending nếu không thể báo giá</td>
+</tr>
+<tr>
+<td>Multi-seller order calculation</td>
+<td>Nhiều item / seller, allocation phức tạp</td>
+<td>Grouping, giảm query N+1, deterministic algorithm, đo CPU/DB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Không thể tăng số Pod và hy vọng giải quyết mọi trường hợp.</strong> Hạn mức ngân sách voucher, row lock và service đối tác là những tài nguyên chia sẻ không tự tăng khi thêm Spring Boot instances.</p>
+<h2 id="4-14-database-design-tham-kh-o-ghi-r-l-ch-s-v-t-nh-to-n">4.14. Database design tham khảo: ghi rõ lịch sử và tính toán</h2>
+<p>Không nên ép tất cả bảng dưới đây vào một transaction duy nhất bằng mọi giá. Đây là mẫu <strong>modular monolith dùng một PostgreSQL</strong>, sau đó mới cân nhắc tách ranh giới dữ liệu khi thực sự cần.</p>
+<figure class="diagram"><a href="assets/chapter-04/diagram-14.svg" rel="noopener noreferrer" target="_blank" title="Mở sơ đồ SVG"><img alt="Sơ đồ kỹ thuật 14" loading="lazy" src="assets/chapter-04/diagram-14.svg"/></a><figcaption><strong>Sơ đồ 14</strong> · SVG đọc offline · <details><summary>Xem / sao chép Mermaid</summary><pre>flowchart TD
+    SKU["product_variant"] --&gt; OF["seller_offer"]
+    SEL["seller"] --&gt; OF
+    OF --&gt; PH["offer_price_history"]
+    OF --&gt; Q["price_quote"]
+    Q --&gt; OR["customer_order"]
+    OR --&gt; ITEM["order_item_snapshot"]
+    PROMO["promotion"] --&gt; BUD["promotion_budget"]
+    PROMO --&gt; REDEEM["promotion_redemption"]
+    OR --&gt; REDEEM
+</pre></details></figcaption></figure>
+<p>Các trường quan trọng nên được xem xét:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Fields cốt lõi</th>
+<th>Constraint nghiệp vụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>seller_offer</code></td>
+<td><code>seller_id</code>, <code>sku_id</code>, <code>active_price</code>, <code>currency</code>, <code>price_version</code>, <code>status</code></td>
+<td>Giá không âm; phiên bản giá tăng có kiểm soát</td>
+</tr>
+<tr>
+<td><code>offer_price_history</code></td>
+<td><code>offer_id</code>, <code>amount</code>, <code>valid_from</code>, <code>valid_to</code>, <code>version</code></td>
+<td>Khoảng hiệu lực theo policy; audit biến động</td>
+</tr>
+<tr>
+<td><code>price_quote</code></td>
+<td><code>buyer_id</code>, <code>quote_hash</code>, <code>payable_total</code>, <code>expires_at</code>, <code>status</code>, <code>price_version</code></td>
+<td>Không dùng quote hết hạn/khác buyer hoặc cart</td>
+</tr>
+<tr>
+<td><code>promotion_budget</code></td>
+<td><code>usage_limit</code>, <code>reserved_uses</code>, <code>consumed_uses</code></td>
+<td>Không vượt quota; counter không âm</td>
+</tr>
+<tr>
+<td><code>promotion_redemption</code></td>
+<td><code>promotion_id</code>, <code>buyer_id</code>, <code>order_id</code>, <code>request_key</code>, <code>status</code></td>
+<td>Chống cùng request hưởng quyền lợi nhiều lần</td>
+</tr>
+<tr>
+<td><code>order_item_snapshot</code></td>
+<td><code>unit_price</code>, <code>discounts</code>, <code>net_amount</code>, <code>currency</code>, <code>price_version</code></td>
+<td>Không phụ thuộc giá hiện tại để giải thích order cũ</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Đừng nhầm <code>order_id</code> duy nhất với <code>payment_attempt_id</code> duy nhất:</strong> một order có thể có nhiều lần thử thanh toán. Pricing giữ vết số tiền của order; Payment xử lý dòng tiền và trạng thái giao dịch ở chương 05/phần V.</p>
+<h2 id="4-15-failure-scenarios-v-nguy-n-t-c-x-l">4.15. Failure Scenarios và nguyên tắc xử lý</h2>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Hậu quả nếu thiết kế đơn giản</th>
+<th>Hướng xử lý</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Admin cập nhật giá giữa render và checkout</td>
+<td>Khách bị thu giá khác với kỳ vọng</td>
+<td>Reprice + yêu cầu xác nhận, hoặc giá được bảo đảm bằng quote hợp lệ</td>
+</tr>
+<tr>
+<td>Redis chưa invalidate</td>
+<td>Hiển thị giá cũ</td>
+<td>TTL/version; checkout dùng rule/version có thẩm quyền</td>
+</tr>
+<tr>
+<td>Voucher cùng lúc hết lượt</td>
+<td>Dùng vượt hạn mức</td>
+<td>Atomic reservation + idempotency</td>
+</tr>
+<tr>
+<td>Khách gửi lại checkout sau timeout</td>
+<td>Tạo hai đơn, sử dụng voucher hai lần</td>
+<td>Idempotency key, lookup kết quả request trước</td>
+</tr>
+<tr>
+<td>Offer bị tạm dừng sau khi tạo cart</td>
+<td>Cart chứa item không thể bán</td>
+<td>Revalidate availability, trả lỗi nghiệp vụ</td>
+</tr>
+<tr>
+<td>Ship/tax service timeout</td>
+<td>Tổng tiền không chắc chắn</td>
+<td>Không charge “đại”; timeout/retry, thông báo chưa đủ dữ liệu hoặc fallback được chấp nhận</td>
+</tr>
+<tr>
+<td>Quote hết hạn khi khách confirm</td>
+<td>Checkout dùng giá cũ</td>
+<td>Quote expiration policy, tạo quote mới</td>
+</tr>
+<tr>
+<td>Một dòng hàng được hoàn trả</td>
+<td>Voucher toàn đơn bị phân bổ sai</td>
+<td>Lưu allocated discounts, định nghĩa refund policy</td>
+</tr>
+<tr>
+<td>Worker chết sau giữ quota</td>
+<td>Voucher bị kẹt</td>
+<td>Reservation expiry, recovery job, at-least-once idempotent</td>
+</tr>
+<tr>
+<td>Multi-currency checkout</td>
+<td>Cộng VND với USD không có chuyển đổi</td>
+<td>Money currency guard, FX rate snapshot và settlement currency riêng</td>
+</tr>
+</tbody>
+</table>
+<h3 id="three-invariants-ki-m-tra-xuy-n-su-t">Three invariants kiểm tra xuyên suốt</h3>
+<pre><code class="language-text">I1. order.payable_total = sum(order_item.net_amount)
+    + shipping + applicable_taxes - order_level_adjustments_not_yet_allocated
+
+I2. promotion.reserved_uses + promotion.consumed_uses &lt;= promotion.usage_limit
+    (for limited-use promotions)
+
+I3. Existing order snapshots do not change when active_offer_price changes.
+</code></pre>
+<p>I1 là <strong>một biểu thức có điều kiện về mô hình phân bổ</strong>: nếu toàn bộ voucher order đã được phân bổ xuống từng item thì <code>order_level_adjustments_not_yet_allocated = 0</code>. Không trừ cùng một discount hai lần. Một số phí/thuế có thể nằm ở item hoặc order level, phải ghi rõ nơi ghi nhận để phép cộng đúng.</p>
+<h2 id="4-16-hands-on-lab-t-m-t-c-t-gi-t-i-checkout-quote">4.16. Hands-on Lab — từ một cột giá tới Checkout Quote</h2>
+<p>Thư mục thực hành kèm theo ở <code>labs/chapter-04/</code> gồm schema PostgreSQL, các query có thể chạy và bộ test scenario. Mục tiêu không phải tạo production-grade promotion engine ngay lập tức mà tự kiểm chứng các invariants quan trọng.</p>
+<h3 id="lab-a-kh-i-t-o-hai-seller-offer-cho-c-ng-sku">Lab A — Khởi tạo hai Seller Offer cho cùng SKU</h3>
+<ul>
+<li>Tạo Seller A với giá 20.000.000 VND, Seller B với giá 19.700.000 VND.</li>
+<li>Xác nhận hai offer có <code>price_version</code> độc lập.</li>
+<li>Admin đổi giá Seller A lên 21.000.000, Seller B không thay đổi.</li>
+<li>Đọc lịch sử giá và kiểm tra đơn đã tạo vẫn có giá snapshot.</li>
+</ul>
+<h3 id="lab-b-voucher-ch-c-n-m-t-l-t">Lab B — Voucher chỉ còn một lượt</h3>
+<p>Mở hai session/transaction PostgreSQL cùng cố reserve voucher một lượt. Kiểm chứng chỉ một transaction được tăng <code>reserved_uses</code>, transaction còn lại trả <code>affected_rows = 0</code> sau khi chờ. Ghi lại row lock wait khi dùng <code>pg_stat_activity</code> hoặc log trong môi trường thử nghiệm.</p>
+<h3 id="lab-c-c-t-nh-ph-checkout">Lab C — Cố tình phá checkout</h3>
+<p>Gửi payload giả định:</p>
+<pre><code class="language-json">{"sellerOfferId":701,"quantity":1,"clientTotal":1000}
+</code></pre>
+<p>Backend phải phớt lờ <code>clientTotal</code> và tính lại bằng dữ liệu offer/rules của server. Nếu giá/quote thay đổi, trả kết quả nghiệp vụ để người dùng xác nhận chứ không charge theo tổng frontend.</p>
+<h3 id="lab-d-ph-n-b-v-ho-n-m-t-ph-n">Lab D — Phân bổ và hoàn một phần</h3>
+<ul>
+<li>Giỏ có ba dòng hàng, tổng voucher 10.000 VND.</li>
+<li>Kiểm tra tổng phân bổ chính xác là 10.000 VND.</li>
+<li>Hủy một dòng; không tính lại giá đơn cũ bằng campaign hiện tại.</li>
+<li>Xác định theo business policy xem phần voucher của item bị hủy được thu hồi, giữ hay tính lại, rồi hạch toán nhất quán.</li>
+</ul>
+<h3 id="lab-e-cache-staleness-drill">Lab E — Cache staleness drill</h3>
+<ul>
+<li>Cache giá version 1.</li>
+<li>Admin đổi DB sang version 2.</li>
+<li>Cố tình giữ cache version 1 ở trang product.</li>
+<li>Gửi checkout: phải xác thực lại giá/rule và đưa ra quyết định theo chính sách đã chọn.</li>
+</ul>
+<h2 id="4-17-chapter-review-t-tr-l-i-nh-m-t-system-designer">4.17. Chapter Review — tự trả lời như một system designer</h2>
+<ol>
+<li>Một SKU có ba seller và ba mức giá; bảng nào sở hữu giá và tại sao?</li>
+<li>Vì sao cart total không nên là số tiền backend charge trực tiếp?</li>
+<li>Hai request cùng dùng voucher còn một lượt: cần atomic ở đâu?</li>
+<li><code>BigDecimal</code> giải quyết vấn đề nào và <strong>không</strong> giải quyết vấn đề nào (ví dụ sai thứ tự áp voucher)?</li>
+<li>Làm sao bảo đảm tổng giảm phân bổ không lệch 1 đơn vị tiền?</li>
+<li>Giá đã chốt trong Order có được cập nhật khi admin đổi Offer không?</li>
+<li>Cache key thiếu seller hoặc channel có thể gây lỗi gì?</li>
+<li>Khi nào Price Quote có thể bảo đảm giá trong 5 phút, và điều kiện bổ sung nào cần cho voucher/stock?</li>
+<li>Thêm 10 Pricing Pod có giúp gì khi voucher hot row đang bị lock không?</li>
+<li>Nếu checkout gồm hai seller và một voucher toàn giỏ, tại sao cần lưu allocation?</li>
+</ol>
+<h3 id="key-takeaways">Key Takeaways</h3>
+<ul>
+<li><strong>Giá là kết quả của một quyết định nghiệp vụ theo ngữ cảnh</strong>, không đơn giản là một thuộc tính tĩnh của Product.</li>
+<li>Product, SKU và Seller Offer có ranh giới riêng; mô hình marketplace thường khiến giá thuộc về lời chào bán của seller.</li>
+<li>Display price, cart estimate, checkout quote và order snapshot khác nhau về vai trò và mức độ cam kết.</li>
+<li>Pricing pipeline cần thứ tự rule, stacking, rounding và discount allocation được xác định.</li>
+<li>Tiền tệ phải có biểu diễn chính xác và quy tắc xử lý từng currency.</li>
+<li>Checkout không tin tổng tiền client; cần xác nhận lại giá, điều kiện voucher, quota và tồn kho theo chính sách.</li>
+<li>Atomic voucher reservation xử lý race condition; nó vẫn có thể tạo hot row và lock contention.</li>
+<li>Redis tăng tốc READ nhưng yêu cầu chiến lược invalidation, time boundary và revalidation rõ ràng.</li>
+<li>Order snapshot là bằng chứng nghiệp vụ cho lịch sử giao dịch, refund và đối soát.</li>
+</ul>
+<hr/>
+<h2 id="k-t-n-i-ch-ng-ti-p-theo">Kết nối chương tiếp theo</h2>
+<p><strong>Chapter 05 — Order Lifecycle:</strong> Sau khi đã biết “đơn hàng phải chốt giá gì”, câu hỏi kế tiếp là “đơn hàng được phép đi qua những trạng thái nào, và hệ thống phải làm gì khi thanh toán, giữ hàng, vận chuyển hoặc hoàn trả gặp lỗi?”. Chương 05 sẽ biến checkout thành một <strong>state machine có transition rules và failure recovery</strong>.</p>
+<h2 id="t-i-li-u-tham-kh-o">Tài liệu tham khảo</h2>
+<ol>
+<li>PostgreSQL Documentation — Numeric Types: <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">https://www.postgresql.org/docs/current/datatype-numeric.html</a></li>
+<li>PostgreSQL Documentation — Transactions: <a href="https://www.postgresql.org/docs/current/tutorial-transactions.html">https://www.postgresql.org/docs/current/tutorial-transactions.html</a></li>
+<li>PostgreSQL Documentation — Explicit Locking: <a href="https://www.postgresql.org/docs/current/explicit-locking.html">https://www.postgresql.org/docs/current/explicit-locking.html</a></li>
+<li>Java <code>BigDecimal</code>: <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html">https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html</a></li>
+<li>Shopify Help — Setting sale prices: <a href="https://help.shopify.com/en/manual/products/details/product-pricing/sale-pricing">https://help.shopify.com/en/manual/products/details/product-pricing/sale-pricing</a></li>
+<li>Shopify Help — Product prices: <a href="https://help.shopify.com/en/manual/products/details/product-pricing">https://help.shopify.com/en/manual/products/details/product-pricing</a></li>
+</ol>
+<blockquote>
+<p><strong>Biên tập:</strong> Số tiền, traffic và chính sách discount trong chương là ví dụ minh họa có ghi giả định. Các đoạn schema/Java là mã học tập, không hàm ý đã tích hợp đầy đủ tax, FX, invoicing, ledger, fraud, migration hoặc quốc gia cụ thể. Lab phải được chạy trên môi trường thử nghiệm trước khi dùng làm nền tảng production.</p>
+</blockquote>
+</article><footer>Inside E-commerce · Volume 1 · Chapter 04 · Offline edition</footer></main>
+<script>
+const nav=document.querySelector('nav');
+document.getElementById('search').addEventListener('input',e=>{
+ const s=e.target.value.trim().toLocaleLowerCase('vi');
+ nav.querySelectorAll('a.h2,a.h3').forEach(x=>x.style.display=x.textContent.toLocaleLowerCase('vi').includes(s)?'block':'none');
+});
+document.getElementById('mobile').onclick=()=>document.body.classList.toggle('nav-open');
+nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>document.body.classList.remove('nav-open')));
+document.getElementById('theme').onclick=()=>{document.body.classList.toggle('dark');document.getElementById('theme').textContent=document.body.classList.contains('dark')?'☀ Sáng':'☾ Tối';};
+window.addEventListener('scroll',()=>{let d=document.documentElement;let max=d.scrollHeight-d.clientHeight;document.getElementById('progress').style.width=(max?100*d.scrollTop/max:0)+'%';},{passive:true});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){nav.querySelectorAll('a.active').forEach(x=>x.classList.remove('active'));let a=nav.querySelector('a[href="#'+e.target.id+'"]');if(a)a.classList.add('active');}}),{rootMargin:'-16% 0px -73% 0px'});
+document.querySelectorAll('article h2[id],article h3[id]').forEach(h=>obs.observe(h));
+</script></body></html>
