@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>System Design: Bottleneck trong ứng dụng E-commerce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F7; --paper:#FFFFFF; --ink:#1B2430; --ink-2:#4A5563; --ink-3:#7A8594;
+  --rule:#DCE1E7; --accent:#0E6B6B; --accent-soft:#E2F0EF;
+  --danger:#B3261E; --danger-soft:#FBE9E7; --ok:#2B7A48; --ok-soft:#E5F3EA;
+  --warn:#9A6400; --warn-soft:#FBF1DC;
+  --code-bg:#1E2631; --code-ink:#E4E9EF; --code-kw:#7FC8C1; --code-str:#E7C27D; --code-cm:#8894A3;
+  --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:"IBM Plex Sans", -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12171E; --paper:#1A2029; --ink:#E6EAF0; --ink-2:#B3BCC8; --ink-3:#8793A2;
+    --rule:#2C3542; --accent:#5EC2BA; --accent-soft:#17312F;
+    --danger:#F08A80; --danger-soft:#3A1E1C; --ok:#7BCB96; --ok-soft:#18301F;
+    --warn:#E6B45C; --warn-soft:#352A14;
+    --code-bg:#0D1117;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12171E; --paper:#1A2029; --ink:#E6EAF0; --ink-2:#B3BCC8; --ink-3:#8793A2;
+  --rule:#2C3542; --accent:#5EC2BA; --accent-soft:#17312F;
+  --danger:#F08A80; --danger-soft:#3A1E1C; --ok:#7BCB96; --ok-soft:#18301F;
+  --warn:#E6B45C; --warn-soft:#352A14;
+  --code-bg:#0D1117;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px);scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:1.0625rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:3rem;max-width:1160px;margin:0 auto;padding:2.5rem 1.5rem 5rem}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr);gap:0;padding:1.5rem 1rem 4rem}}
+
+/* TOC: the trail of shifting bottlenecks */
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 2rem);align-self:start;font-size:.9rem}
+.toc h2{font-family:var(--serif);font-size:1rem;font-weight:600;margin:0 0 1rem;color:var(--ink-2)}
+.toc ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--rule)}
+.toc li{position:relative}
+.toc a{display:block;padding:.35rem 0 .35rem 1rem;color:var(--ink-2);text-decoration:none;line-height:1.35}
+.toc a:hover{color:var(--ink)}
+.toc a.active{color:var(--accent);font-weight:600}
+.toc a.active::before{content:"";position:absolute;left:-2px;top:.3rem;bottom:.3rem;width:2px;background:var(--accent)}
+.toc .n{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);margin-right:.4rem}
+@media (max-width:920px){.toc{display:none}}
+
+main{min-width:0}
+.hero{padding:1rem 0 2.5rem;border-bottom:1px solid var(--rule);margin-bottom:2.5rem}
+.hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(2rem,4.5vw,3.1rem);line-height:1.1;letter-spacing:-.015em;margin:0 0 1.25rem;max-width:18ch}
+.hero .lede{font-size:1.15rem;color:var(--ink-2);max-width:62ch;margin:0 0 1.75rem}
+.shift{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;font-size:.88rem}
+.shift span{padding:.3rem .65rem;border:1px solid var(--rule);background:var(--paper);border-radius:4px;white-space:nowrap}
+.shift i{font-style:normal;color:var(--ink-3)}
+.shift span:last-child{border-color:var(--accent);color:var(--accent);font-weight:600}
+
+.stack{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 1.5rem;padding:0;list-style:none}
+.stack li{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:.45rem .8rem;font-size:.92rem}
+.stack b{font-weight:600;color:var(--ink-3);font-size:.8rem;display:block;line-height:1.2}
+
+section{margin:0 0 3.5rem}
+.prose{max-width:70ch}
+h2.sec{font-family:var(--serif);font-weight:700;font-size:clamp(1.5rem,3vw,1.95rem);line-height:1.2;margin:0 0 1.1rem;letter-spacing:-.01em;display:flex;gap:.75rem;align-items:baseline}
+h2.sec .num{font-family:var(--mono);font-size:.95rem;font-weight:500;color:var(--accent);flex:none;min-width:1.6rem}
+h3{font-family:var(--serif);font-weight:600;font-size:1.25rem;margin:2rem 0 .7rem}
+h4{font-size:1rem;font-weight:600;margin:1.5rem 0 .5rem}
+p{margin:0 0 1rem}
+code{font-family:var(--mono);font-size:.86em;background:var(--accent-soft);color:var(--ink);padding:.08em .35em;border-radius:3px}
+ul.plain{padding-left:1.2rem;margin:0 0 1rem}
+ul.plain li{margin:.25rem 0}
+
+/* Code */
+.code{margin:1rem 0 1.5rem;border-radius:8px;overflow:hidden;background:var(--code-bg)}
+.code .lang{font-family:var(--mono);font-size:.75rem;color:var(--code-cm);padding:.55rem 1rem 0}
+.code pre{margin:0;padding:.6rem 1rem 1rem;overflow-x:auto;color:var(--code-ink);font-family:var(--mono);font-size:.86rem;line-height:1.6}
+.code .k{color:var(--code-kw)} .code .s{color:var(--code-str)} .code .c{color:var(--code-cm)}
+
+/* Tables */
+.tbl{overflow-x:auto;margin:1rem 0 1.5rem;border:1px solid var(--rule);border-radius:8px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:.94rem}
+th,td{text-align:left;padding:.65rem .9rem;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--ink-2);background:var(--bg);font-size:.86rem}
+tr:last-child td{border-bottom:0}
+td.op{font-family:var(--mono);font-size:.82rem;white-space:nowrap}
+td strong{font-weight:600}
+
+/* Callouts */
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:.85rem 1.1rem;border-radius:0 6px 6px 0;margin:1.25rem 0;max-width:70ch}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.danger{border-color:var(--danger);background:var(--danger-soft)}
+.note p:last-child{margin:0}
+.note .t{font-weight:600;display:block;margin-bottom:.2rem}
+
+/* Flow diagrams */
+.flow{display:flex;flex-direction:column;align-items:stretch;gap:0;margin:1.25rem 0 1.75rem;max-width:560px}
+.node{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:.7rem 1rem;text-align:center}
+.node .h{font-weight:600;display:block}
+.node .d{font-size:.86rem;color:var(--ink-2)}
+.node.hot{border-color:var(--danger);background:var(--danger-soft)}
+.node.acc{border-color:var(--accent);background:var(--accent-soft)}
+.arrow{align-self:center;width:2px;height:22px;background:var(--ink-3);position:relative;margin:2px 0 8px}
+.arrow::after{content:"";position:absolute;left:-5px;bottom:-7px;border:6px solid transparent;border-top-color:var(--ink-3)}
+.row{display:grid;gap:.5rem}
+.pods{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:.5rem}
+.pods span{font-family:var(--mono);font-size:.72rem;border:1px solid var(--accent);border-radius:3px;padding:.2rem 0;color:var(--accent)}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.workers{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+@media (max-width:520px){.workers{grid-template-columns:1fr}.pods{grid-template-columns:repeat(5,1fr)}}
+
+/* Chart */
+.chart{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:1.1rem 1.2rem .9rem;margin:1.25rem 0 1.5rem;max-width:620px}
+.chart .cap{font-size:.84rem;color:var(--ink-3);margin:.4rem 0 0}
+.chart svg{display:block;width:100%;height:auto}
+.chart .bar{fill:var(--accent)} .chart .bar.hot{fill:var(--danger)}
+.chart text{fill:var(--ink-2);font-family:var(--sans);font-size:13px}
+.chart .val{fill:var(--ink);font-weight:600;font-family:var(--mono);font-size:12px}
+.chart line{stroke:var(--rule)}
+
+/* Cache stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;margin:1rem 0;max-width:620px}
+.stat{background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:.9rem 1rem}
+.stat .v{font-family:var(--serif);font-size:2rem;font-weight:700;line-height:1.1}
+.stat .l{font-size:.88rem;color:var(--ink-2)}
+.stat.ok .v{color:var(--ok)} .stat.db .v{color:var(--warn)}
+
+/* Flash sale card */
+.flash{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--danger);border-radius:8px;overflow:hidden;margin:1rem 0 1.5rem;max-width:620px;background:var(--paper)}
+.flash div{padding:.9rem 1rem;border-right:1px solid var(--rule)}
+.flash div:last-child{border-right:0}
+.flash .l{font-size:.82rem;color:var(--ink-3);display:block}
+.flash .v{font-family:var(--serif);font-weight:700;font-size:1.5rem}
+.flash .v.red{color:var(--danger)}
+@media (max-width:520px){.flash{grid-template-columns:1fr}.flash div{border-right:0;border-bottom:1px solid var(--rule)}.flash div:last-child{border-bottom:0}}
+
+/* Race timeline */
+.race td{font-size:.9rem}
+.badge{display:inline-block;font-size:.8rem;font-weight:600;padding:.15rem .6rem;border-radius:999px}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.bad{background:var(--danger-soft);color:var(--danger)}
+
+/* Steps */
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:1rem 0 1.5rem;max-width:70ch}
+ol.steps>li{counter-increment:s;position:relative;padding:0 0 1.25rem 2.6rem;border-left:2px solid var(--rule);margin-left:.9rem}
+ol.steps>li:last-child{border-left-color:transparent;padding-bottom:0}
+ol.steps>li::before{content:counter(s);position:absolute;left:-.95rem;top:0;width:1.8rem;height:1.8rem;border-radius:50%;background:var(--paper);border:2px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:.8rem;font-weight:500;display:flex;align-items:center;justify-content:center}
+ol.steps .st{font-weight:600;display:block;margin-bottom:.25rem}
+
+/* Lifecycle */
+.life{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin:1rem 0 1.5rem}
+.life div{background:var(--paper);border:1px solid var(--rule);border-top:3px solid var(--ink-3);border-radius:6px;padding:.7rem .8rem}
+.life .s{font-family:var(--mono);font-size:.82rem;font-weight:500;display:block;margin-bottom:.2rem}
+.life .d{font-size:.86rem;color:var(--ink-2)}
+.life .p{border-top-color:var(--warn)} .life .r{border-top-color:var(--accent)} .life .pd{border-top-color:var(--ok)} .life .c{border-top-color:var(--danger)}
+@media (max-width:640px){.life{grid-template-columns:1fr 1fr}}
+
+/* Architecture */
+.arch{border:1px solid var(--rule);border-radius:10px;padding:1rem;background:var(--paper);margin:1rem 0 1.5rem;max-width:680px}
+.arch .k8s{border:1.5px dashed var(--accent);border-radius:8px;padding:.8rem;margin:.25rem 0}
+.arch .k8s .lbl{font-size:.8rem;color:var(--accent);font-weight:600;margin-bottom:.5rem}
+.svc{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.svc span{background:var(--accent-soft);border-radius:4px;padding:.4rem;text-align:center;font-size:.88rem;font-weight:500}
+.infra{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem}
+@media (max-width:520px){.svc{grid-template-columns:1fr 1fr}.infra{grid-template-columns:1fr}}
+
+/* Evolution */
+.evo{display:grid;gap:1rem;margin:1rem 0}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:1rem;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.1rem}
+.stage h4{margin:0 0 .15rem;font-family:var(--serif);font-size:1.1rem}
+.stage .sub{font-size:.86rem;color:var(--accent);font-weight:600;margin-bottom:.5rem;display:block}
+.stage p{font-size:.95rem;margin:0 0 .4rem}
+.stage pre{margin:0;font-family:var(--mono);font-size:.78rem;background:var(--bg);border-radius:6px;padding:.6rem .75rem;overflow-x:auto;color:var(--ink-2);line-height:1.45}
+@media (max-width:640px){.stage{grid-template-columns:minmax(0,1fr)}}
+
+/* Final questions */
+.questions{counter-reset:q;list-style:none;padding:0;margin:1rem 0;max-width:70ch}
+.questions li{counter-increment:q;padding:.6rem 0 .6rem 2.2rem;position:relative;border-bottom:1px solid var(--rule)}
+.questions li::before{content:counter(q);position:absolute;left:0;top:.6rem;font-family:var(--mono);color:var(--accent);font-weight:500}
+.mantra{font-family:var(--serif);font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:600;line-height:1.4;margin:2rem 0;padding:1.25rem 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);max-width:70ch}
+.mantra span{color:var(--ink-3);font-weight:500}
+
+.themebtn{position:fixed;right:1rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));background:var(--paper);color:var(--ink);border:1px solid var(--rule);border-radius:999px;padding:.45rem .9rem;font:500 .85rem var(--sans);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc" aria-label="Mục lục">
+    <h2>Mục lục</h2>
+    <ol>
+      <li><a href="#s1"><span class="n">01</span>Monolith ban đầu</a></li>
+      <li><a href="#s2"><span class="n">02</span>Phân tích workload</a></li>
+      <li><a href="#s3"><span class="n">03</span>Bottleneck READ</a></li>
+      <li><a href="#s4"><span class="n">04</span>Race Condition tồn kho</a></li>
+      <li><a href="#s5"><span class="n">05</span>Lock Contention → Queue</a></li>
+      <li><a href="#s6"><span class="n">06</span>Thanh toán &amp; Saga</a></li>
+      <li><a href="#s7"><span class="n">07</span>Kiến trúc hoàn chỉnh</a></li>
+      <li><a href="#s8"><span class="n">08</span>Bảng bottleneck</a></li>
+      <li><a href="#s9"><span class="n">09</span>Lộ trình phát triển</a></li>
+      <li><a href="#s10"><span class="n">10</span>Hotspot &amp; giới hạn ngoài</a></li>
+      <li><a href="#s11"><span class="n">11</span>Tư duy System Designer</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <h1>System Design: Bottleneck trong ứng dụng E-commerce</h1>
+      <p class="lede">E-commerce (Shopee, Lazada, Amazon…) khó hơn app video vì phải xử lý đồng thời traffic lớn, database, tồn kho, thanh toán và tính nhất quán dữ liệu. Tài liệu mô phỏng hệ thống đi từ 100 người dùng lên hàng trăm nghìn người dùng, và điểm nghẽn dịch chuyển qua từng giai đoạn.</p>
+      <div class="shift" aria-label="Chuỗi dịch chuyển bottleneck">
+        <span>API quá tải</span><i>›</i><span>Database READ</span><i>›</i><span>Race Condition</span><i>›</i><span>Lock Contention</span><i>›</i><span>Payment Provider</span>
+      </div>
+    </header>
+
+    <!-- 1 -->
+    <section id="s1">
+      <h2 class="sec"><span class="num">01</span>Giai đoạn đầu: một Spring Boot và một PostgreSQL</h2>
+      <div class="prose">
+        <p>Stack giả định cho toàn bộ tài liệu:</p>
+      </div>
+      <ul class="stack">
+        <li><b>Backend</b>Spring Boot</li>
+        <li><b>Database</b>PostgreSQL</li>
+        <li><b>Cache</b>Redis</li>
+        <li><b>Message Broker</b>RabbitMQ</li>
+        <li><b>Infrastructure</b>Docker + Kubernetes</li>
+      </ul>
+
+      <div class="flow">
+        <div class="node"><span class="h">100 người dùng</span><span class="d">Xem sản phẩm, thêm giỏ hàng, đặt hàng</span></div>
+        <div class="arrow"></div>
+        <div class="node acc"><span class="h">Spring Boot</span><span class="d">Product / Cart / Order / Payment</span></div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">PostgreSQL</span><span class="d">Users / Products / Inventory / Orders</span></div>
+      </div>
+
+      <div class="prose">
+        <p>Ứng dụng hoạt động bình thường. Cho đến khi bạn chạy chương trình Flash Sale và lượng truy cập tăng đột biến.</p>
+      </div>
+
+      <div class="chart" role="img" aria-label="Biểu đồ request mỗi giây: bình thường 100, khuyến mãi 1.000, Flash Sale 10.000">
+        <h4 style="margin:0 0 .6rem">Traffic tăng đột biến</h4>
+        <svg viewBox="0 0 560 230" preserveAspectRatio="xMidYMid meet">
+          <line x1="130" y1="20" x2="130" y2="200"/>
+          <line x1="130" y1="200" x2="540" y2="200"/>
+          <text x="120" y="50" text-anchor="end">Bình thường</text>
+          <rect class="bar" x="130" y="36" width="4" height="22" rx="2"/>
+          <text class="val" x="142" y="51">100 rps</text>
+          <text x="120" y="110" text-anchor="end">Khuyến mãi</text>
+          <rect class="bar" x="130" y="96" width="38" height="22" rx="2"/>
+          <text class="val" x="176" y="111">1.000 rps</text>
+          <text x="120" y="170" text-anchor="end">Flash Sale</text>
+          <rect class="bar hot" x="130" y="156" width="330" height="22" rx="2"/>
+          <text class="val" x="468" y="171">10.000 rps</text>
+        </svg>
+        <p class="cap">Số request/giây giả định để minh họa sự thay đổi tải, không phải benchmark thực tế.</p>
+      </div>
+
+      <div class="prose">
+        <p>Spring Boot bắt đầu quá tải. Bạn triển khai Kubernetes, tăng từ 1 lên 10 Pod và thêm Service để phân phối request.</p>
+      </div>
+
+      <div class="flow">
+        <div class="node"><span class="h">10.000 requests/giây</span></div>
+        <div class="arrow"></div>
+        <div class="node acc"><span class="h">Kubernetes Service</span><span class="d">Load Balancing</span>
+          <div class="pods"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+        </div>
+        <div class="arrow"></div>
+        <div class="node hot"><span class="h">PostgreSQL</span><span class="d">Database Bottleneck</span></div>
+      </div>
+
+      <div class="prose">
+        <p>Kubernetes tăng năng lực xử lý HTTP của ứng dụng, nhưng các Pod vẫn đổ request xuống cùng một PostgreSQL. Lúc này, tăng thêm Spring Boot có thể khiến database chịu áp lực lớn hơn.</p>
+        <p>Đây là thời điểm phải phân tích bản chất workload E-commerce.</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="s2">
+      <h2 class="sec"><span class="num">02</span>Phân tích workload: READ nhiều hơn WRITE, nhưng WRITE quan trọng hơn về tính đúng đắn</h2>
+      <div class="prose"><p>Trong E-commerce, không phải request nào cũng có tính chất giống nhau.</p></div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Hành động</th><th>DB operation</th><th>Đặc điểm</th></tr></thead>
+          <tbody>
+            <tr><td>Xem sản phẩm</td><td class="op">READ</td><td>Thường có lưu lượng cao</td></tr>
+            <tr><td>Tìm kiếm</td><td class="op">READ</td><td>Có thể tốn CPU nếu truy vấn phức tạp</td></tr>
+            <tr><td>Xem giá</td><td class="op">READ</td><td>Cần giá đủ mới</td></tr>
+            <tr><td>Xem tồn kho</td><td class="op">READ</td><td>Cần biết khả năng mua</td></tr>
+            <tr><td>Thêm vào giỏ hàng</td><td class="op">READ/WRITE</td><td>Có thể lưu vào DB hoặc Redis</td></tr>
+            <tr><td>Đặt hàng</td><td class="op">READ/WRITE</td><td>Cần tính nhất quán cao</td></tr>
+            <tr><td>Trừ tồn kho</td><td class="op">WRITE</td><td><strong>Không được bán quá số lượng</strong></td></tr>
+            <tr><td>Thanh toán</td><td class="op">READ/WRITE</td><td><strong>Không được ghi nhận thanh toán sai hoặc trùng</strong></td></tr>
+            <tr><td>Xem lịch sử đơn</td><td class="op">READ</td><td>Phù hợp phân trang và tối ưu index</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>Tỷ lệ đọc/ghi thực tế phụ thuộc loại hình E-commerce và thời điểm. Một trang bán hàng thông thường tập trung vào đọc sản phẩm, trong khi Flash Sale tạo ra tải ghi rất lớn trên một số sản phẩm.</p>
+        <p>Từ đây, bạn phải giải quyết hai bài toán khác nhau:</p>
+      </div>
+      <div class="split" style="max-width:680px">
+        <div class="node" style="text-align:left">
+          <span class="h">READ</span>
+          <span class="d">Làm sao phục vụ hàng triệu lượt xem sản phẩm?</span>
+          <ul class="plain" style="margin:.5rem 0 0;font-size:.92rem"><li>Redis Cache</li><li>Read Replica</li><li>CDN</li><li>Search Engine</li></ul>
+        </div>
+        <div class="node" style="text-align:left">
+          <span class="h">WRITE</span>
+          <span class="d">Làm sao hàng nghìn người cùng mua mà không bán quá số lượng?</span>
+          <ul class="plain" style="margin:.5rem 0 0;font-size:.92rem"><li>Database transaction</li><li>Atomic update</li><li>Stock reservation</li><li>Queue</li><li>Idempotency</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="s3">
+      <h2 class="sec"><span class="num">03</span>Giải quyết bottleneck READ trước</h2>
+      <div class="prose">
+        <p>Giả sử sản phẩm iPhone đang được 100.000 người xem trong một khoảng thời gian ngắn. Mỗi request đều thực hiện:</p>
+      </div>
+      <div class="code"><div class="lang">SQL</div><pre><span class="k">SELECT</span> *
+<span class="k">FROM</span> products
+<span class="k">WHERE</span> id = 1001;</pre></div>
+      <div class="prose">
+        <p>Nếu 100.000 request đều truy vấn PostgreSQL thì lãng phí, vì thông tin sản phẩm phần lớn giống nhau. Bạn bổ sung Redis.</p>
+      </div>
+      <div class="flow">
+        <div class="node"><span class="h">100.000 lượt xem sản phẩm</span></div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">Spring Boot Pods</span></div>
+        <div class="arrow"></div>
+        <div class="node acc"><span class="h">Redis</span><span class="d"><code>product:1001 → JSON</code> · CACHE HIT → Return</span></div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">PostgreSQL</span><span class="d">Chỉ đọc khi cache miss</span></div>
+      </div>
+      <div class="prose"><p>Giả sử đạt cache hit rate 99% với 100.000 lượt xem:</p></div>
+      <div class="stats">
+        <div class="stat ok"><div class="v">99.000</div><div class="l">request phục vụ từ Redis</div></div>
+        <div class="stat db"><div class="v">1.000</div><div class="l">request còn lại đọc database</div></div>
+      </div>
+      <div class="prose">
+        <p style="font-size:.9rem;color:var(--ink-3)">Số liệu minh họa; hiệu quả thực tế phụ thuộc cache key, TTL, phân bố traffic và cách xử lý cache miss.</p>
+        <p>Bottleneck đọc trên PostgreSQL giảm rất nhiều. Nhưng xuất hiện bài toán mới: <strong>Cache Invalidation</strong>.</p>
+        <p>Nếu admin đổi giá iPhone từ 20 triệu xuống 18 triệu, Redis vẫn đang lưu giá 20 triệu thì sao? Một cách giải quyết: sau khi cập nhật database thành công, xóa hoặc cập nhật cache.</p>
+      </div>
+      <div class="flow" style="max-width:360px">
+        <div class="node">Admin đổi giá</div><div class="arrow"></div>
+        <div class="node">UPDATE PostgreSQL</div><div class="arrow"></div>
+        <div class="node acc">Invalidate Redis key</div><div class="arrow"></div>
+        <div class="node">Request tiếp theo tải giá mới</div>
+      </div>
+      <div class="note warn">
+        <p>Trong hệ thống thực tế, cần xử lý cả request đồng thời, cập nhật cache thất bại và dữ liệu cache hết hạn. Giá dùng để chốt đơn phải được xác thực lại ở phía server, không tin hoàn toàn giá từ cache hoặc frontend.</p>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="s4">
+      <h2 class="sec"><span class="num">04</span>Bottleneck nguy hiểm nhất: hàng nghìn người cùng mua một sản phẩm</h2>
+      <div class="prose"><p>Đây là tình huống điển hình trong phỏng vấn System Design E-commerce. Giả sử một sản phẩm đang Flash Sale:</p></div>
+      <div class="flash">
+        <div><span class="l">iPhone Flash Sale</span><span class="v">5.000.000đ</span></div>
+        <div><span class="l">Số lượng còn lại</span><span class="v red">1 chiếc</span></div>
+        <div><span class="l">Người đang cố mua</span><span class="v">1.000 người</span></div>
+      </div>
+
+      <h3>Bad case: READ → CHECK → WRITE</h3>
+      <div class="code"><div class="lang">Java</div><pre>Product product =
+    repository.findById(productId);
+
+<span class="k">if</span> (product.getStock() &gt; 0) {
+    product.setStock(
+        product.getStock() - 1
+    );
+    repository.save(product);
+}</pre></div>
+      <div class="prose"><p>Thoạt nhìn rất hợp lý. Nhưng nếu hai request chạy đồng thời?</p></div>
+
+      <h4>Race Condition — tồn kho ban đầu = 1</h4>
+      <div class="tbl race" style="max-width:560px">
+        <table>
+          <thead><tr><th>User A</th><th>User B</th></tr></thead>
+          <tbody>
+            <tr><td>Đọc stock = 1</td><td>Đọc stock = 1</td></tr>
+            <tr><td>Stock đủ!</td><td>Stock đủ!</td></tr>
+            <tr><td>Set stock = 0</td><td>Set stock = 0</td></tr>
+            <tr><td><span class="badge ok">Order A thành công</span></td><td><span class="badge ok">Order B thành công</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note danger">
+        <span class="t">2 đơn hàng — 1 sản phẩm</span>
+        <p>Bạn đã bán quá số lượng mà không nhất thiết nhận được lỗi từ database. Kubernetes không giải quyết Race Condition. Khi tăng từ 1 lên 20 Pod, số request có khả năng tranh chấp cùng một sản phẩm còn lớn hơn.</p>
+      </div>
+
+      <h3>Giải pháp: Atomic Conditional Update</h3>
+      <div class="prose"><p>Thay vì đọc rồi kiểm tra rồi ghi, để database kiểm tra và trừ tồn kho trong một câu lệnh nguyên tử:</p></div>
+      <div class="code"><div class="lang">SQL</div><pre><span class="k">UPDATE</span> inventory
+<span class="k">SET</span> stock = stock - 1
+<span class="k">WHERE</span> product_id = 1001
+  <span class="k">AND</span> stock &gt;= 1;</pre></div>
+      <div class="prose"><p>Spring Boot kiểm tra số dòng được cập nhật:</p></div>
+      <div class="code"><div class="lang">Java</div><pre><span class="k">int</span> updatedRows =
+    inventoryRepository.decreaseStock(
+        productId
+    );
+
+<span class="k">if</span> (updatedRows == 0) {
+    <span class="k">throw new</span> OutOfStockException();
+}</pre></div>
+      <div class="prose">
+        <p>Với PostgreSQL, các cập nhật đồng thời trên cùng bản ghi được đồng bộ bằng row-level locking; điều kiện <code>WHERE</code> được đánh giá lại trên phiên bản dòng mới nhất khi transaction đang chờ được giải phóng lock. Điều này ngăn hai lần trừ thành công khi chỉ còn một sản phẩm.</p>
+      </div>
+
+      <h4>Kết quả sau khi áp dụng Atomic Update</h4>
+      <div class="tbl race" style="max-width:560px">
+        <table>
+          <thead><tr><th>User A</th><th>User B</th></tr></thead>
+          <tbody>
+            <tr><td>Update stock 1 → 0</td><td>Chờ row lock</td></tr>
+            <tr><td><span class="badge ok">1 row updated</span></td><td><span class="badge bad">0 rows updated</span></td></tr>
+            <tr><td>Đặt hàng</td><td>Hết hàng</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p>Cần đặt thao tác trừ tồn và tạo đơn hàng trong cùng transaction để nếu tạo đơn thất bại thì tồn kho được rollback.</p>
+      </div>
+      <div class="note">
+        <span class="t">Bottleneck Shifting</span>
+        <p>Bạn vừa giải quyết tính đúng đắn, chưa chắc đã giải quyết khả năng chịu tải. 1.000 transaction cùng cập nhật một dòng vẫn phải tranh chấp row lock: điểm nghẽn chuyển từ Race Condition sang Lock Contention.</p>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="s5">
+      <h2 class="sec"><span class="num">05</span>Từ Lock Contention đến Queue: thiết kế hệ thống Flash Sale</h2>
+      <div class="prose"><p>Đây là lúc RabbitMQ tham gia.</p></div>
+      <div class="note warn"><p>Queue không tự động ngăn overselling. Database vẫn cần bảo vệ tính đúng đắn của tồn kho. Queue giúp điều tiết lượng công việc và số tác vụ được xử lý đồng thời.</p></div>
+
+      <div class="flow">
+        <div class="node"><span class="h">10.000 khách mua sản phẩm</span></div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">Spring Boot + Kubernetes</span><span class="d">Xác thực, rate limit, kiểm tra request trùng</span></div>
+        <div class="arrow"></div>
+        <div class="node acc"><span class="h">RabbitMQ</span><span class="d"><code>purchase-request</code> queue — các yêu cầu chờ xử lý</span></div>
+        <div class="arrow"></div>
+        <div class="workers">
+          <div class="node"><span class="h">Worker 1</span><span class="d">Order Service</span></div>
+          <div class="node"><span class="h">Worker 2</span><span class="d">Order Service</span></div>
+          <div class="node"><span class="h">Worker 3</span><span class="d">Order Service</span></div>
+        </div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">PostgreSQL</span><span class="d">Atomic stock reservation + Order</span></div>
+      </div>
+
+      <h3>Flow đặt hàng</h3>
+      <ol class="steps">
+        <li><span class="st">Người dùng nhấn Mua ngay</span>Spring Boot nhận request kèm <code>userId</code>, <code>productId</code>, <code>quantity</code> và mã chống gửi trùng.</li>
+        <li><span class="st">Request được tiếp nhận vào hệ thống xử lý</span>Trong thiết kế bất đồng bộ, server chỉ trả <code>ACCEPTED</code> sau khi yêu cầu được lưu bền vững hoặc đưa thành công vào hàng đợi bền vững.
+          <div class="code"><div class="lang">JSON</div><pre>{
+  <span class="s">"requestId"</span>: <span class="s">"req_123"</span>,
+  <span class="s">"status"</span>: <span class="s">"ACCEPTED"</span>
+}</pre></div></li>
+        <li><span class="st">Worker lấy request</span>Worker chạy transaction kiểm tra giá, điều kiện bán hàng, tồn kho và tạo đơn.
+          <div class="code"><div class="lang">SQL</div><pre><span class="k">UPDATE</span> inventory
+<span class="k">SET</span> stock = stock - 1
+<span class="k">WHERE</span> product_id = 1001
+  <span class="k">AND</span> stock &gt;= 1;</pre></div></li>
+        <li><span class="st">Database quyết định kết quả</span>Trừ tồn thành công và transaction tạo đơn commit → <code>ORDER_RESERVED</code>. Không còn hàng → <code>OUT_OF_STOCK</code>.</li>
+        <li><span class="st">Người dùng tiếp tục thanh toán</span>Chỉ những đơn đã giữ được hàng mới được chuyển sang bước thanh toán.</li>
+      </ol>
+      <div class="prose">
+        <p>Thay vì 10.000 request cùng cố chiếm connection và row lock, bạn kiểm soát lượng công việc thông qua số Worker và concurrency.</p>
+        <p>Lựa chọn nâng cao: phân vùng job theo <code>productId</code>, để các request mua cùng một sản phẩm được xử lý tuần tự trong một luồng logic. Cách này giảm tranh chấp trên hot row nhưng giới hạn throughput của riêng sản phẩm đó; các sản phẩm khác vẫn xử lý song song.</p>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section id="s6">
+      <h2 class="sec"><span class="num">06</span>Thanh toán và Distributed Transaction</h2>
+      <div class="prose"><p>Giả sử database đã trừ tồn kho thành công, nhưng người dùng thanh toán thất bại.</p></div>
+      <div class="flow" style="max-width:320px">
+        <div class="node">Stock: 10 → 9</div><div class="arrow"></div>
+        <div class="node">Order created</div><div class="arrow"></div>
+        <div class="node hot">Payment failed</div>
+      </div>
+      <div class="prose">
+        <p>Bạn phải làm gì với chiếc hàng vừa giữ? Không thể để tồn kho bị mất vĩnh viễn. Đây là lý do hệ thống E-commerce thường có khái niệm <strong>Stock Reservation</strong> — giữ hàng tạm thời.</p>
+      </div>
+
+      <h3>Order Lifecycle</h3>
+      <div class="life">
+        <div class="p"><span class="s">PENDING</span><span class="d">Đang xử lý yêu cầu mua</span></div>
+        <div class="r"><span class="s">RESERVED</span><span class="d">Đã giữ hàng, chờ thanh toán</span></div>
+        <div class="pd"><span class="s">PAID</span><span class="d">Thanh toán thành công</span></div>
+        <div class="c"><span class="s">CANCELLED</span><span class="d">Thanh toán thất bại hoặc hết hạn giữ hàng</span></div>
+      </div>
+      <div class="prose">
+        <p>Ví dụ đơn hàng được giữ trong 15 phút. Nếu không thanh toán thành công trong thời gian đó, hệ thống hủy reservation và hoàn trả lượng hàng đã giữ.</p>
+      </div>
+      <div class="code"><div class="lang">SQL</div><pre><span class="k">UPDATE</span> inventory
+<span class="k">SET</span> stock = stock + 1
+<span class="k">WHERE</span> product_id = 1001;</pre></div>
+      <div class="note danger">
+        <p>Câu lệnh này chỉ được chạy <strong>một lần</strong> cho reservation thực sự đã hủy, và phải nằm trong transaction kiểm tra trạng thái. Nếu hai Worker cùng hoàn hàng cho một đơn, bạn tạo ra tồn kho ảo.</p>
+      </div>
+      <div class="prose">
+        <p>Hệ thống production cần xử lý webhook thanh toán đến trễ, webhook gửi trùng, timeout và yêu cầu thanh toán được retry. Các keyword quan trọng:</p>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Keyword</th><th>Vai trò</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Idempotency</strong></td><td>Yêu cầu gửi lại không tạo thêm đơn hoặc thanh toán trùng</td></tr>
+            <tr><td><strong>Saga</strong></td><td>Điều phối các bước giao dịch và hành động bù trừ</td></tr>
+            <tr><td><strong>Transactional Outbox</strong></td><td>Giảm rủi ro cập nhật DB thành công nhưng phát sự kiện thất bại</td></tr>
+            <tr><td><strong>Stock Reservation</strong></td><td>Giữ hàng tạm thời trước khi xác nhận mua</td></tr>
+            <tr><td><strong>Eventual Consistency</strong></td><td>Chấp nhận một số hệ thống phụ cập nhật chậm trong thời gian ngắn</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <p>Đừng mở database transaction rồi giữ row lock trong lúc chờ HTTP response từ cổng thanh toán. Việc gọi cổng thanh toán có thể mất nhiều giây hoặc timeout.</p>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section id="s7">
+      <h2 class="sec"><span class="num">07</span>Kiến trúc E-commerce hoàn chỉnh</h2>
+      <div class="arch">
+        <div class="node"><span class="h">Customers</span><span class="d">Website / Mobile App</span></div>
+        <div class="arrow"></div>
+        <div class="node"><span class="h">CDN + API Gateway</span><span class="d">Static assets / Auth / Rate limiting / Routing</span></div>
+        <div class="arrow"></div>
+        <div class="k8s">
+          <div class="lbl">Kubernetes — Spring Boot Services</div>
+          <div class="svc"><span>Product</span><span>Cart</span><span>Order</span><span>Payment</span><span>Inventory</span><span>Search</span></div>
+          <div style="font-size:.84rem;color:var(--ink-2);margin-top:.5rem">Các service có thể được scale độc lập khi cần.</div>
+        </div>
+        <div class="arrow"></div>
+        <div class="infra">
+          <div class="node"><span class="h">Redis</span><span class="d">Product cache / Cart / Rate limit</span></div>
+          <div class="node"><span class="h">RabbitMQ</span><span class="d">Order events / Background tasks</span></div>
+          <div class="node"><span class="h">PostgreSQL</span><span class="d">Orders / Inventory / Payments</span></div>
+          <div class="node"><span class="h">Search Engine</span><span class="d">Product full-text search / Filtering</span></div>
+        </div>
+      </div>
+      <div class="prose">
+        <p>Sơ đồ trên là kiến trúc logic để hình dung, không bắt buộc tất cả thành phần phải triển khai thành microservice riêng ngay từ đầu. Bạn vẫn có thể bắt đầu bằng Spring Boot modular monolith.</p>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section id="s8">
+      <h2 class="sec"><span class="num">08</span>Mỗi bottleneck có cách giải quyết riêng</h2>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>Bottleneck</th><th>Nguyên nhân</th><th>Hướng xử lý</th></tr></thead>
+          <tbody>
+            <tr><td><strong>API quá tải</strong></td><td>Quá nhiều HTTP request</td><td>Kubernetes + HPA</td></tr>
+            <tr><td><strong>Database connections</strong></td><td>Quá nhiều Pod và connection pool</td><td>Pool sizing, PgBouncer</td></tr>
+            <tr><td><strong>Product READ</strong></td><td>Truy vấn lặp lại</td><td>Redis Cache</td></tr>
+            <tr><td><strong>Database read capacity</strong></td><td>Tài nguyên đọc không đủ</td><td>Read Replica</td></tr>
+            <tr><td><strong>Search chậm</strong></td><td>Full-text search phức tạp</td><td>OpenSearch / Elasticsearch</td></tr>
+            <tr><td><strong>Flash Sale overselling</strong></td><td>Race Condition</td><td>Atomic Update + Transaction</td></tr>
+            <tr><td><strong>Hot product row</strong></td><td>Lock Contention</td><td>Queue, giới hạn concurrency, phân vùng xử lý</td></tr>
+            <tr><td><strong>Checkout quá tải</strong></td><td>Nhiều request đồng thời</td><td>Admission control + Queue</td></tr>
+            <tr><td><strong>Thanh toán trùng</strong></td><td>Retry và webhook gửi lặp</td><td>Idempotency</td></tr>
+            <tr><td><strong>Mất đồng bộ DB và Queue</strong></td><td>Dual-write failure</td><td>Transactional Outbox</td></tr>
+            <tr><td><strong>Database write capacity</strong></td><td>Một Primary không đủ khả năng ghi</td><td>Tối ưu write, partitioning, cân nhắc sharding</td></tr>
+            <tr><td><strong>Ảnh sản phẩm tải chậm</strong></td><td>Quá nhiều file tĩnh</td><td>Object Storage + CDN</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose"><p>Không có nghĩa là phải dùng tất cả công nghệ này. Mỗi công nghệ chỉ nên xuất hiện khi bạn xác định được bài toán mà nó giải quyết.</p></div>
+    </section>
+
+    <!-- 9 -->
+    <section id="s9">
+      <h2 class="sec"><span class="num">09</span>Lộ trình phát triển E-commerce bằng Spring Boot</h2>
+      <div class="evo">
+        <div class="stage">
+          <div><h4>Stage 1 — MVP</h4><span class="sub">Monolith</span>
+            <p>Xây dựng product, cart, order, inventory và tích hợp thanh toán.</p>
+            <p>Ưu tiên tính đúng đắn của transaction, index và quản lý trạng thái đơn hàng.</p></div>
+          <pre>Spring Boot
+     |
+     v
+PostgreSQL</pre>
+        </div>
+        <div class="stage">
+          <div><h4>Stage 2 — Traffic tăng</h4><span class="sub">Horizontal Scaling</span>
+            <p>Triển khai nhiều instance. Đưa trạng thái dùng chung ra khỏi memory của từng application instance.</p></div>
+          <pre>Load Balancer
+     |
+Spring Boot x N
+     |
+PostgreSQL</pre>
+        </div>
+        <div class="stage">
+          <div><h4>Stage 3 — Database READ tăng</h4><span class="sub">Caching</span>
+            <p>Cache product, category, product detail. Tối ưu query và index trước khi bổ sung hạ tầng phức tạp.</p></div>
+          <pre>Spring Boot x N
+   |       |
+ Redis   PostgreSQL</pre>
+        </div>
+        <div class="stage">
+          <div><h4>Stage 4 — Flash Sale</h4><span class="sub">High-concurrency Checkout</span>
+            <p>Atomic Update, Idempotency, Stock Reservation và cơ chế xử lý yêu cầu đồng thời.</p></div>
+          <pre>API
+ |
+Queue
+ |
+Order Workers
+ |
+Inventory DB</pre>
+        </div>
+        <div class="stage">
+          <div><h4>Stage 5 — Quy mô lớn</h4><span class="sub">Distributed System</span>
+            <p>Bổ sung read replica, autoscaling riêng từng service, search engine, event-driven architecture và các cơ chế phục hồi lỗi.</p></div>
+          <pre>API Gateway
+     |
+Independent Services
+     |
+Cache / Queue / Database</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section id="s10">
+      <h2 class="sec"><span class="num">10</span>Database không phải lúc nào cũng là điểm nghẽn cuối cùng</h2>
+      <div class="prose">
+        <p>Giả sử bạn đã giải quyết tất cả vấn đề:</p>
+        <ul class="plain">
+          <li>API chịu được 50.000 request/giây.</li>
+          <li>Redis xử lý tốt lượng đọc sản phẩm.</li>
+          <li>PostgreSQL bảo vệ tồn kho chính xác.</li>
+          <li>RabbitMQ điều tiết các đơn hàng.</li>
+          <li>Kubernetes mở rộng được Worker.</li>
+        </ul>
+        <p>Nhưng cổng thanh toán chỉ tiếp nhận 500 yêu cầu/giây theo giới hạn hợp đồng. Dù tăng từ 20 lên 100 Pod, bạn cũng không thể tăng throughput thanh toán vượt quá giới hạn đó. Bottleneck đã chuyển từ Database sang <strong>Payment Provider</strong>.</p>
+        <p>Trường hợp khác: bạn có 1.000 sản phẩm trong Flash Sale, nhưng 90% người dùng chỉ cố mua đúng một chiếc iPhone giảm giá. PostgreSQL có thể chưa hết CPU tổng thể, nhưng một dòng inventory của iPhone lại bị hàng nghìn transaction tranh chấp.</p>
+      </div>
+      <div class="note"><span class="t">Hotspot Bottleneck</span><p>Một tài nguyên cụ thể trở thành điểm nghẽn thay vì toàn bộ hệ thống.</p></div>
+    </section>
+
+    <!-- 11 -->
+    <section id="s11">
+      <h2 class="sec"><span class="num">11</span>Tư duy của một System Designer</h2>
+      <div class="prose"><p>Khi gặp hệ thống quá tải, đặt câu hỏi theo thứ tự:</p></div>
+      <ol class="questions">
+        <li>Request đang bị chậm tại thành phần nào?</li>
+        <li>Thành phần đó đang bị giới hạn bởi CPU, RAM, I/O, connections, lock, network hay quota?</li>
+        <li>Công việc có thể cache, phân tán, xử lý song song hoặc đưa vào queue không?</li>
+        <li>Sau khi scale, có phát sinh race condition hoặc mất tính nhất quán không?</li>
+        <li>Nếu giải quyết được điểm nghẽn này, điểm nghẽn tiếp theo có thể nằm ở đâu?</li>
+      </ol>
+      <p class="mantra">Capacity <span>→</span> Bottleneck <span>→</span> Scaling <span>→</span> Consistency <span>→</span> New Bottleneck</p>
+      <div class="note">
+        <span class="t">Bài thực hành đề xuất</span>
+        <p>Tự xây một Flash Sale chỉ có 100 sản phẩm nhưng 10.000 request mua đồng thời, rồi đo throughput, latency, tỷ lệ hết hàng, số connection, thời gian chờ row lock và xác nhận không có overselling. Bài toán nhỏ này giúp hiểu sâu Kubernetes, Redis, RabbitMQ, PostgreSQL và transaction khi chúng phối hợp trong một hệ thống thực tế.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<button class="themebtn" id="themeBtn" type="button" aria-label="Đổi giao diện sáng/tối">Sáng / Tối</button>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{var t=localStorage.getItem('theme'); if(t) root.setAttribute('data-theme',t);}catch(e){}
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('theme',next);}catch(e){}
+  });
+  var links=[].slice.call(document.querySelectorAll('.toc a'));
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting){
+          links.forEach(function(l){l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id);});
+        }
+      });
+    },{rootMargin:'-20% 0px -70% 0px'});
+    document.querySelectorAll('main section').forEach(function(s){io.observe(s);});
+  }
+})();
+</script>
+</body>
+</html>
